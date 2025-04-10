@@ -45,7 +45,6 @@
             </a>
         </div>
 
-
     </div>
 
     <!-- Main Content Area -->
@@ -53,7 +52,7 @@
         <div class="view-event-in-main-content">
          
             <div class="header">
-                <h1>Event Name</h1>
+                <h1>Event Details</h1>
                 <div class="separator"></div>
             </div>
 
@@ -67,12 +66,15 @@
 
                     <!-- RIGHT: Event Details -->
                     <div class="event-details-container">
-                        <h2>Event Details</h2>
-                        <p><strong>Date:</strong> January 1, 2024</p>
-                        <p><strong>Time:</strong> 10:00 AM - 2:00 PM</p>
-                        <p><strong>Location:</strong> Event Hall A</p>
-                        <p><strong>Description:</strong> This is a sample event description.</p>
-                        <p><strong>Organizer:</strong> John Doe</p>
+                        <h2>Event Name</h2>
+                        <p><strong>Category: </strong>Event Category</p>
+                        <p><strong>Slots: </strong>Event Slots</p>
+                        <p><strong>Status: </strong>Event Status</p>
+                        <p><strong>Description: </strong>This is a sample event description.</p>
+                        <p><strong>Date: </strong> Event Date</p>
+                        <p><strong>Time: </strong> Event Time</p>
+                        <p><strong>Location: </strong>Event Location</p>
+                        <p><strong>Speaker: </strong>Event Speaker</p>
                     </div>
                     
                 </div>
