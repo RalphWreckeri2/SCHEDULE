@@ -1,21 +1,28 @@
 <?php
+include 'DbConnection.php';
+session_start();
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $name = $_POST['name'] ?? '';
-    $email = $_POST['email'] ?? '';
-    $phone = $_POST['phone'] ?? '';
-    $password = $_POST['password'] ?? '';
+    $name = $_POST['name'];
+    $email = $_POST['email'];
+    $phone = $_POST['phone'];
+    $password = $_POST['password'];
 
-    // Here you would typically:
-    // 1. Validate the input
-    // 2. Hash the password
-    // 3. Store in database
-    // 4. Handle the registration process
+    // Hash the password
+    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
+    // Insert into database
+    $sql = "INSERT INTO users (name, email, phone, password) VALUES ('$name', '$email', '$phone', '$hashed_password')";
     
-    // For now, we'll just redirect back with a success message
-    header("Location: index.php?success=1");
-    exit;
+    if (mysqli_query($conn, $sql)) {
+        echo "<script>alert('Account created successfully!');</script>";
+        header("Location: SignIn.php");
+        exit();
+    } else {
+        echo "<script>alert('Error: " . mysqli_error($conn) . "');</script>";
+    }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>

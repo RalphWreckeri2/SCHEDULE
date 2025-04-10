@@ -1,20 +1,42 @@
+<?php
+include 'DbConnection.php';
+session_start();
+
+// Check if there's a success message in the session
+if (isset($_SESSION['success_message'])) {
+    $success_message = $_SESSION['success_message'];
+    unset($_SESSION['success_message']); // Remove the message from the session
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Schedule Events</title>
     <link rel="stylesheet" href="styles1.css">
 </head>
+
 <body>
+
+    <!-- Modal -->
+    <div id="success-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <p id="success-message"></p>
+        </div>
+    </div>
+
     <!-- Sidebar Navigation -->
     <div class="sidebar">
         <div class="logo-section">
             <img src="SCHEDULE RBG.png" alt="Schedule Logo" class="logo1">
         </div>
-        
+
         <div class="separator"></div>
-        
+
         <div class="nav-menu">
             <a href="Dashboard.php" class="nav-item" id="dashboard">
                 <img src="dashboard-icon.png" alt="Dashboard" class="nav-icon">
@@ -58,7 +80,7 @@
             </div>
 
             <div class="separator-line"></div>
-            
+
             <h2>Explore New Events</h2>
             <p class="description">
                 Discover a variety of events happening around you. Join us to learn, network, and grow!
@@ -119,17 +141,17 @@
                 </div>
                 <div class="button-wrapper"><button class="view-button" onclick="window.location.href='MyEvents.php'">View Details</button></div>
             </div>
-           
+
             <h2>About Us</h2>
-                <p class="description">Schedule</p>
-            
+            <p class="description">Schedule</p>
+
             <div class="about-us-section">
                 <h3 class="section-title">What is <span class="highlight">Schedule</span>?</h3>
                 <p class="about-us">Schedule is a web-based event registration system designed to streamline the process of managing and organizing events. It provides a user-friendly interface for both event organizers and participants, making it easy to create, register, and manage events online.</p>
-                
+
                 <h3 class="section-title">Our Mission</h3>
                 <p class="about-us">To provide an organized, digital solution for event registration that enhances accessibility, reduces manual effort, and promotes eco-friendly, paperless event management.</p>
-                
+
                 <h3 class="section-title">What We Offer</h3>
                 <ul class="about-list">
                     <li><strong>Easy Event Registration:</strong> Browse and sign up for events with just a few clicks.</li>
@@ -139,7 +161,7 @@
             </div>
 
             <div class="separator-line"></div>
-            
+
             <h2>Developed by:</h2>
             <p class="description">
                 Meet the talented team behind Schedule Events!
@@ -192,7 +214,7 @@
             <p class="description">
                 Have questions or need assistance? We're here to help! Feel free to reach out to us for any inquiries about event registrations, technical support, or general concerns.
             </p>
-            
+
             <div class="contact-info">
                 <div class="contact-item">
                     <img src="address-icon.png" alt="Address" class="contact-icon">
@@ -200,21 +222,21 @@
                         <strong>Address:</strong> 1234 Rizal Street, Makati City, Metro Manila, Philippines
                     </div>
                 </div>
-                
+
                 <div class="contact-item">
                     <img src="email-icon.png" alt="Email" class="contact-icon">
                     <div class="contact-text">
                         <strong>Email:</strong> support@scheduleevents.ph
                     </div>
                 </div>
-                
+
                 <div class="contact-item">
                     <img src="phone-icon.png" alt="Phone" class="contact-icon">
                     <div class="contact-text">
                         <strong>Phone:</strong> (+63) 912-345-6789
                     </div>
                 </div>
-                
+
                 <div class="contact-item">
                     <img src="social-icon.png" alt="Socials" class="contact-icon">
                     <div class="contact-text">
@@ -226,53 +248,87 @@
             <p class="social-text">
                 You can also follow us on our social media channels for updates and announcements!
             </p>
-            
+
             <p class="copyright">All Rights Reserved. 2025</p>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-        // Get all navigation items
-        const navItems = document.querySelectorAll('.nav-item');
-        
-        // Get current page URL
-        const currentPage = window.location.pathname;
-        
-        // Remove 'active' class from all navigation items
-        navItems.forEach(function(item) {
-        item.classList.remove('active');
+            // Get all navigation items
+            const navItems = document.querySelectorAll('.nav-item');
+
+            // Get current page URL
+            const currentPage = window.location.pathname;
+
+            // Remove 'active' class from all navigation items
+            navItems.forEach(function(item) {
+                item.classList.remove('active');
+            });
+
+            // Find which nav item matches the current page and set it as active
+            navItems.forEach(function(item) {
+                // Get the href attribute
+                const href = item.getAttribute('href');
+
+                // Extract just the filename from the href
+                const hrefPage = href.split('/').pop();
+
+                // Extract just the filename from the current URL
+                const currentPageName = currentPage.split('/').pop();
+
+                // Check if this nav item corresponds to the current page
+                if (currentPageName === hrefPage ||
+                    (currentPageName === 'Dashboard.php' && item.id === 'dashboard') ||
+                    (currentPageName === '' && item.id === 'dashboard')) {
+                    item.classList.add('active');
+                    console.log('Set active:', item.id);
+                }
+            });
+
+            // Add click event listeners for navigation within the same page
+            navItems.forEach(function(item) {
+                item.addEventListener('click', function() {
+                    // We don't need to do anything here since the page will reload
+                    // and the above code will set the correct active state
+                });
+            });
         });
-        
-        // Find which nav item matches the current page and set it as active
-        navItems.forEach(function(item) {
-        // Get the href attribute
-        const href = item.getAttribute('href');
-        
-        // Extract just the filename from the href
-        const hrefPage = href.split('/').pop();
-        
-        // Extract just the filename from the current URL
-        const currentPageName = currentPage.split('/').pop();
-        
-        // Check if this nav item corresponds to the current page
-        if (currentPageName === hrefPage || 
-            (currentPageName === 'Dashboard.php' && item.id === 'dashboard') ||
-            (currentPageName === '' && item.id === 'dashboard')) {
-            item.classList.add('active');
-            console.log('Set active:', item.id);
+
+        //for modal(popup) after a successful sign in
+        function showModal(message) {
+            var modal = document.createElement('div');
+            modal.classList.add('modal');
+            modal.innerHTML = `
+                    <div class="modal-content">
+                        <span class="close-btn">&times;</span>
+                        <p>${message}</p>
+                    </div>
+                `;
+            document.body.appendChild(modal);
+
+            // Close the modal when clicking on the close button
+            modal.querySelector('.close-btn').addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+
+            // Close the modal if the user clicks outside of the modal content
+            window.addEventListener('click', function(event) {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+
+            // Show the modal
+            modal.style.display = 'block';
         }
-        });
-        
-        // Add click event listeners for navigation within the same page
-        navItems.forEach(function(item) {
-        item.addEventListener('click', function() {
-            // We don't need to do anything here since the page will reload
-            // and the above code will set the correct active state
-        });
-        });
-        });
+
+        // Show modal if success message is set
+        <?php if (isset($success_message)): ?>
+            showModal("<?php echo addslashes($success_message); ?>");
+        <?php endif; ?>
     </script>
-    
+
 </body>
+
 </html>
