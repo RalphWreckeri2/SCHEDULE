@@ -52,12 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://fonts.googleapis.com/css?family=Inter:400,600" rel="stylesheet">
     <link href="styles.css" rel="stylesheet">
-    <script>
-        // JavaScript to show success message as a popup
-        function showSuccessMessage(message) {
-            alert(message);
-        }
-    </script>
+
 </head>
 
 <body>
@@ -95,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="error-message"><?php echo $error_message; ?></div>
                     <?php endif; ?>
                     <div class="form-submit">
-                        <button type="submit" class="btn btn-primary">SIGN UP</button>
+                        <button type="submit" class="btn btn-primary">SIGN IN</button>
                     </div>
                     <div class="forgot-password-wrapper">
                         <a href="EmailConfirmation.php" class="forgot-password">Forgot Password</a>
