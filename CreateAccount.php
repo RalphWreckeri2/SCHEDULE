@@ -61,6 +61,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     </div>
                     <div class="form-field">
                         <input type="password" name="password" placeholder="Password" required>
+                        <button type="button" id="togglePassword" class="toggle-password">Show</button>
+                        <script>
+                            document.addEventListener("DOMContentLoaded", function() {
+                                const passwordInput = document.querySelector('input[name="password"]');
+                                const togglePasswordButton = document.getElementById('togglePassword');
+
+                                togglePasswordButton.addEventListener('click', function() {
+                                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                                    passwordInput.setAttribute('type', type);
+
+                                    // Toggle button text
+                                    this.textContent = type === 'password' ? 'Show' : 'Hide';
+                                });
+                            });
+                        </script>
                     </div>
                     <div class="form-submit">
                         <button type="submit" class="btn btn-primary">SIGN UP</button>
