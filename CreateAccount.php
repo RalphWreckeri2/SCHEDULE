@@ -58,13 +58,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <input type="tel" name="phone" placeholder="Phone Number" required>
                     </div>
                     <div class="form-field">
-                        <input type="password" name="password" placeholder="Password" required>
+                        <input type="password" name="password" placeholder="Password" minlength="8" required>
                         <button type="button" id="togglePassword" class="toggle-password">Show</button>
                         <script>
                             document.addEventListener("DOMContentLoaded", function() {
+                                const form = document.querySelector("form");
                                 const passwordInput = document.querySelector('input[name="password"]');
                                 const togglePasswordButton = document.getElementById('togglePassword');
 
+                                // Prevent form submission on Enter key when min length of password is not met
+                                form.addEventListener("submit", function(event) {
+                                    if (passwordInput.value.legth < 8) {
+                                        event.preventDefault();
+                                        alert("Password must be at least 8 characters long.");
+                                    }
+                                }); 
+
+                                // Toggle password visibility
                                 togglePasswordButton.addEventListener('click', function() {
                                     const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
                                     passwordInput.setAttribute('type', type);
