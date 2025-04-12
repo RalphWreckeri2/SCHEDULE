@@ -1,3 +1,10 @@
+<?php
+include 'DbConnection.php';
+include 'CRUD.php'; // This is where your CRUD functions live
+
+session_start();
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>

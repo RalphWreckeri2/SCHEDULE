@@ -68,7 +68,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                                 // Prevent form submission on Enter key when min length of password is not met
                                 form.addEventListener("submit", function(event) {
-                                    if (passwordInput.value.legth < 8) {
+                                    if (passwordInput.value.length < 8) {
                                         event.preventDefault();
                                         alert("Password must be at least 8 characters long.");
                                     }

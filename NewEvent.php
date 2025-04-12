@@ -1,20 +1,107 @@
+<?php
+include 'DbConnection.php';
+include 'CRUD.php'; // This is where your createUser() function lives
+
+$UserManager = new UserManager($conn);
+
+// After form submission, add detailed logging
+if ($_SERVER['REQUEST_METHOD'] == "POST") {
+    // File upload handling
+    $targetDir = "uploads/";
+    if (isset($_FILES["event-photo"]) && $_FILES["event-photo"]["error"] == UPLOAD_ERR_OK) {
+        $imageName = basename($_FILES["event-photo"]["name"]);
+        $targetFile = $targetDir . $imageName;
+
+        if (move_uploaded_file($_FILES["event-photo"]["tmp_name"], $targetFile)) {
+            $eventPhoto = $targetFile;
+            error_log("File uploaded successfully to: " . $eventPhoto);
+        } else {
+            error_log("Failed to move uploaded file. Error: " . $_FILES["event-photo"]["error"]);
+            echo "<script>alert('Error uploading image.');</script>";
+            exit;
+        }
+    } else {
+        error_log("No file uploaded or error occurred. Error code: " . $_FILES["event-photo"]["error"]);
+        echo "<script>alert('No file uploaded or an error occurred.');</script>";
+        exit;
+    }
+
+    // Get form data with validation
+    $eventName = $_POST['event-name'];
+    $eventCategory = $_POST['event-category'];
+    $eventSlots = (int)$_POST['event-slots'];
+    $eventStatus = $_POST['event-status'];
+    $eventDescription = $_POST['event-description'];
+    $eventDate = $_POST['event-date'];
+    $eventStartingTime = $_POST['event-starting-time'];
+    $eventEndTime = $_POST['event-end-time'];
+    $eventLocation = $_POST['event-location'];
+    $eventSpeaker = $_POST['event-speaker'];
+    $speakerDescription = $_POST['speaker-description'];
+
+    // Fix category values to match database enum
+    // Map form values to database enum values
+    $categoryMap = [
+        'business-and-finance' => 'Business & Finance',
+        'technology-and-innovation' => 'Technology & Innovation',
+        'health-and-wellness' => 'Health & Wellness',
+        'personal-and-professional-development' => 'Personal & Professional Development'
+    ];
+
+    if (isset($categoryMap[$eventCategory])) {
+        $eventCategory = $categoryMap[$eventCategory];
+    }
+
+    // Call CreateEvent with the parameters
+    $success = $UserManager->CreateEvent(
+        $eventPhoto,
+        $eventName,
+        $eventCategory,
+        $eventSlots,
+        $eventStatus,
+        $eventDescription,
+        $eventDate,
+        $eventStartingTime,
+        $eventEndTime,
+        $eventLocation,
+        $eventSpeaker,
+        $speakerDescription
+    );
+
+    if ($success) {
+        // Make sure this is before ANY HTML output
+        echo "<script>
+            alert('Event created successfully!');
+            window.location.href = 'MyEvents.php';
+        </script>";
+        exit(); // Important: stop execution after the alert and redirection
+    } else {
+        echo "<script>alert('Error: Could not create event.');</script>";
+        // Log the error for debugging
+        error_log("Event creation failed but no exception was thrown");
+    }
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Schedule Events</title>
     <link rel="stylesheet" href="styles1.css">
 </head>
+
 <body>
     <!-- Sidebar Navigation -->
     <div class="sidebar">
         <div class="logo-section">
             <img src="SCHEDULE RBG.png" alt="Schedule Logo" class="logo1">
         </div>
-        
+
         <div class="separator"></div>
-        
+
         <div class="nav-menu">
             <a href="Dashboard.php" class="nav-item" id="dashboard">
                 <img src="dashboard-icon.png" alt="Dashboard" class="nav-icon">
@@ -59,7 +146,8 @@
 
             <div class="separator-line"></div>
 
-            <div class="form-container">
+            <form method="POST" action="NewEvent.php" enctype="multipart/form-data">
+                <div class="form-container">
                     <div class="form-field">
                         <label for="event-photo">Upload event cover photo (.jpeg, .jpg, .png):</label>
                         <input type="file" name="event-photo" accept=".jpeg, .jpg, .png" required>
@@ -92,21 +180,21 @@
                         </div>
                     </div>
                     <div class="form-field">
-                        <label for="event-title">Event Title:</label>
-                        <input type="text" name="event-title" placeholder="Event Title" required>
-                    </div>
-                    <div class="form-field">
                         <label for="event-description">Event Description:</label>
                         <textarea name="event-description" placeholder="Event Description" required></textarea>
                     </div>
-                    <div class="form-row-field2">
-                        <div class="form-field">
+                    <div class="form-row">
+                        <div class="form-row-field">
                             <label for="event-date">Event Date:</label>
                             <input type="date" name="event-date" required>
                         </div>
-                        <div class="form-field">
-                            <label for="event-time">Event Time:</label>
-                            <input type="time" name="event-time" required>
+                        <div class="form-row-field">
+                            <label for="event-starting-time">Event Starting Time:</label>
+                            <input type="time" name="event-starting-time" required>
+                        </div>
+                        <div class="form-row-field">
+                            <label for="event-end-time">Event End Time:</label>
+                            <input type="time" name="event-end-time" required>
                         </div>
                     </div>
                     <div class="form-field">
@@ -129,8 +217,8 @@
                         <button type="button" class="cancel-button">Cancel</button>
                         <button type="submit" class="submit-button">Create</button>
                     </div>
-
                 </div>
+            </form>
 
             <div class="separator-line"></div>
 
@@ -138,7 +226,7 @@
             <p class="description">
                 Have questions or need assistance? We're here to help! Feel free to reach out to us for any inquiries about event registrations, technical support, or general concerns.
             </p>
-            
+
             <div class="contact-info">
                 <div class="contact-item">
                     <img src="address-icon.png" alt="Address" class="contact-icon">
@@ -146,21 +234,21 @@
                         <strong>Address:</strong> 1234 Rizal Street, Makati City, Metro Manila, Philippines
                     </div>
                 </div>
-                
+
                 <div class="contact-item">
                     <img src="email-icon.png" alt="Email" class="contact-icon">
                     <div class="contact-text">
                         <strong>Email:</strong> support@scheduleevents.ph
                     </div>
                 </div>
-                
+
                 <div class="contact-item">
                     <img src="phone-icon.png" alt="Phone" class="contact-icon">
                     <div class="contact-text">
                         <strong>Phone:</strong> (+63) 912-345-6789
                     </div>
                 </div>
-                
+
                 <div class="contact-item">
                     <img src="social-icon.png" alt="Socials" class="contact-icon">
                     <div class="contact-text">
@@ -172,53 +260,54 @@
             <p class="social-text">
                 You can also follow us on our social media channels for updates and announcements!
             </p>
-            
+
             <p class="copyright">All Rights Reserved. 2025</p>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-        // Get all navigation items
-        const navItems = document.querySelectorAll('.nav-item');
-        
-        // Get current page URL
-        const currentPage = window.location.pathname;
-        
-        // Remove 'active' class from all navigation items
-        navItems.forEach(function(item) {
-        item.classList.remove('active');
-        });
-        
-        // Find which nav item matches the current page and set it as active
-        navItems.forEach(function(item) {
-        // Get the href attribute
-        const href = item.getAttribute('href');
-        
-        // Extract just the filename from the href
-        const hrefPage = href.split('/').pop();
-        
-        // Extract just the filename from the current URL
-        const currentPageName = currentPage.split('/').pop();
-        
-        // Check if this nav item corresponds to the current page
-        if (currentPageName === hrefPage || 
-            (currentPageName === 'Dashboard.php' && item.id === 'dashboard') ||
-            (currentPageName === '' && item.id === 'dashboard')) {
-            item.classList.add('active');
-            console.log('Set active:', item.id);
-        }
-        });
-        
-        // Add click event listeners for navigation within the same page
-        navItems.forEach(function(item) {
-        item.addEventListener('click', function() {
-            // We don't need to do anything here since the page will reload
-            // and the above code will set the correct active state
-        });
-        });
+            // Get all navigation items
+            const navItems = document.querySelectorAll('.nav-item');
+
+            // Get current page URL
+            const currentPage = window.location.pathname;
+
+            // Remove 'active' class from all navigation items
+            navItems.forEach(function(item) {
+                item.classList.remove('active');
+            });
+
+            // Find which nav item matches the current page and set it as active
+            navItems.forEach(function(item) {
+                // Get the href attribute
+                const href = item.getAttribute('href');
+
+                // Extract just the filename from the href
+                const hrefPage = href.split('/').pop();
+
+                // Extract just the filename from the current URL
+                const currentPageName = currentPage.split('/').pop();
+
+                // Check if this nav item corresponds to the current page
+                if (currentPageName === hrefPage ||
+                    (currentPageName === 'Dashboard.php' && item.id === 'dashboard') ||
+                    (currentPageName === '' && item.id === 'dashboard')) {
+                    item.classList.add('active');
+                    console.log('Set active:', item.id);
+                }
+            });
+
+            // Add click event listeners for navigation within the same page
+            navItems.forEach(function(item) {
+                item.addEventListener('click', function() {
+                    // We don't need to do anything here since the page will reload
+                    // and the above code will set the correct active state
+                });
+            });
         });
     </script>
-    
+
 </body>
+
 </html>
