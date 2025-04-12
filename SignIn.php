@@ -1,7 +1,10 @@
 <?php
 include 'DbConnection.php';
+include 'CRUD.php';
+
 session_start();
 
+$UserManager = new UserManager($conn);
 $error_message = '';
 $success_message = '';
 $name = '';
@@ -12,35 +15,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $_POST['email'];
     $password = $_POST['password'];
 
-    // Check if user exists in the database by name
-    $query = "SELECT * FROM users WHERE name = ?";
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param("s", $name);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    $user = $UserManager->AuthenticateUser($name, $email, $password);
 
-    if ($result->num_rows > 0) {
-        // User exists, now check email and password
-        $user = $result->fetch_assoc();
-        if ($user['email'] === $email) {
-            if (password_verify($password, $user['password'])) {
-                $_SESSION['user'] = $user;
-                $_SESSION['success_message'] = "Sign-in successful! <br> Welcome to Schedule, " . htmlspecialchars($name) . "."; // Set the success message
-                header("Location: Dashboard.php"); // Redirect to Dashboard
-                exit; // Ensure no further code is executed
-            } else {
-                $error_message = "Invalid password. Please try again.";
-                $password = ''; // Clear password field
-            }
-        } else {
-            $error_message = "Invalid email. Please try again.";
-            $email = ''; // Clear email field
-        }
+    if ($user) {
+        $_SESSION['user'] = $user;
+        $_SESSION['success_message'] = "Sign-in successful! <br> Welcome to Schedule, " . htmlspecialchars($name) . "."; // Set the success message
+        header('Location: Dashboard.php');
+        exit;
     } else {
-        $error_message = "You don't have an account. <a href='SignUp.php'>Create an account</a>";
+        $error_message = "Invalid credentials. Please try again.";
         $name = ''; // Clear name field
+        $email = ''; // Clear email field   
     }
 }
+
 ?>
 
 <!DOCTYPE html>

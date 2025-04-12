@@ -1,6 +1,10 @@
 <?php
 include 'DbConnection.php';
+include 'CRUD.php'; // This is where your createUser() function lives
+
 session_start();
+
+$UserManager = new UserManager($conn); // Create an instance of UserManager
 $showModal = false; // Flag to control modal display
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -9,16 +13,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $phone = $_POST['phone'];
     $password = $_POST['password'];
 
-    // Hash the password
-    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-
-    // Insert into database
-    $sql = "INSERT INTO users (name, email, phone, password) VALUES ('$name', '$email', '$phone', '$hashed_password')";
-
-    if (mysqli_query($conn, $sql)) {
-        $showModal = true; // Set flag to true to show modal
+    if ($UserManager->InsertUser($name, $email, $phone, $password)) {
+        $showModal = true; // Success modal or redirection flag
     } else {
-        echo "<script>alert('Error: " . mysqli_error($conn) . "');</script>";
+        echo "<script>alert('Error: Could not create user.');</script>";
     }
 }
 ?>
