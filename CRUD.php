@@ -35,6 +35,32 @@ class UserManager {
         return false; // User not found or password mismatch
     }
 
+    public function isNameValid($name) {
+        $stmt = $this->conn->prepare("SELECT * FROM users WHERE name = ?");
+        $stmt->bind_param("s", $name);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public function isEmailValid($email) {
+        $stmt = $this->conn->prepare("SELECT * FROM users WHERE email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
+            return true;
+        } else {
+            return false;           
+        }
+    }
+
     public function InsertResetToken($email, $token) {
         $stmt = $this->conn->prepare ("call InsertResetToken(?, ?)");
         $stmt->bind_param("ss", $email, $token);

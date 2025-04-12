@@ -23,9 +23,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header('Location: Dashboard.php');
         exit;
     } else {
-        $error_message = "Invalid credentials. Please try again.";
-        $name = ''; // Clear name field
-        $email = ''; // Clear email field   
+        // $error_message = "Invalid password. Please try again.";
+        // $name = ''; // Clear name field
+        // $email = ''; // Clear email field
+        if (empty($name) || !$UserManager->isNameValid($name)) {
+            $name = ''; // Clear name field if invalid
+            $error_message = "Invalid name. Please try again.";
+        } elseif (empty($email) || !$UserManager->isEmailValid($email)) {
+            $email = ''; // Clear email field if invalid
+            $error_message = "Invalid email. Please try again.";
+        } else {
+            $error_message = "Invalid password. Please try again.";
+        }
     }
 }
 
