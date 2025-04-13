@@ -14,14 +14,14 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
 
         if (move_uploaded_file($_FILES["event-photo"]["tmp_name"], $targetFile)) {
             $eventPhoto = $targetFile;
-            error_log("File uploaded successfully to: " . $eventPhoto);
+            // error_log("File uploaded successfully to: " . $eventPhoto);
         } else {
-            error_log("Failed to move uploaded file. Error: " . $_FILES["event-photo"]["error"]);
+            // error_log("Failed to move uploaded file. Error: " . $_FILES["event-photo"]["error"]);
             echo "<script>alert('Error uploading image.');</script>";
             exit;
         }
     } else {
-        error_log("No file uploaded or error occurred. Error code: " . $_FILES["event-photo"]["error"]);
+        // error_log("No file uploaded or error occurred. Error code: " . $_FILES["event-photo"]["error"]);
         echo "<script>alert('No file uploaded or an error occurred.');</script>";
         exit;
     }
@@ -52,7 +52,25 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
         $eventCategory = $categoryMap[$eventCategory];
     }
 
-    // Call CreateEvent with the parameters
+    // Get the main speaker data
+    $eventSpeaker = $_POST['event-speaker'];
+    $speakerDescription = $_POST['speaker-description'];
+
+    // Initialize with the main speaker
+    $allSpeakers = $eventSpeaker;
+    $allDescriptions = $speakerDescription;
+
+    // Add additional speakers if any
+    if (isset($_POST['additional-speaker']) && is_array($_POST['additional-speaker'])) {
+        for ($i = 0; $i < count($_POST['additional-speaker']); $i++) {
+            if (!empty($_POST['additional-speaker'][$i]) && !empty($_POST['additional-description'][$i])) {
+                $allSpeakers .= " || " . $_POST['additional-speaker'][$i];
+                $allDescriptions .= " || " . $_POST['additional-description'][$i];
+            }
+        }
+    }
+
+    // Call CreateEvent with delimited strings
     $success = $UserManager->CreateEvent(
         $eventPhoto,
         $eventName,
@@ -64,21 +82,18 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
         $eventStartingTime,
         $eventEndTime,
         $eventLocation,
-        $eventSpeaker,
-        $speakerDescription
+        $allSpeakers,
+        $allDescriptions
     );
 
     if ($success) {
-        // Make sure this is before ANY HTML output
         echo "<script>
-            alert('Event created successfully!');
-            window.location.href = 'MyEvents.php';
+        alert('Event created successfully!');
+        window.location.href = 'MyEvents.php';
         </script>";
-        exit(); // Important: stop execution after the alert and redirection
+        exit();
     } else {
-        echo "<script>alert('Error: Could not create event.');</script>";
-        // Log the error for debugging
-        error_log("Event creation failed but no exception was thrown");
+        echo "<script>alert('Erroor');</script>";
     }
 }
 ?>
@@ -210,9 +225,13 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                             <label for="speaker-description">Description:</label>
                             <input type="text" name="speaker-description" placeholder="Speaker Description" required>
                         </div>
-                        <button type="button" class="add-speaker-button">Add Speaker</button>
+                        <div class="form-field">
+                            <div id="additional-speakers"></div>
+                        </div>
                     </div>
-
+                    <div class="add-speaker-button-container">
+                        <button type="button" class="add-speaker-button" id="add-speaker-button">Add Speaker</button>
+                    </div>
                     <div class="button-row">
                         <button type="button" class="cancel-button">Cancel</button>
                         <button type="submit" class="submit-button">Create</button>
@@ -305,6 +324,41 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                     // and the above code will set the correct active state
                 });
             });
+
+            // Add click event listener for the add speaker button
+            // Add click event listener for the add speaker button
+            const addSpeakerBtn = document.getElementById('add-speaker-button');
+            const additionalSpeakersDiv = document.getElementById('additional-speakers');
+            let speakerCount = 0;
+
+            addSpeakerBtn.addEventListener('click', function() {
+                speakerCount++;
+                const newSpeaker = document.createElement('div');
+                newSpeaker.classList.add('additional-speaker', 'form-row-field2');
+
+                newSpeaker.innerHTML = `
+                    <div class="form-field">
+                        <label for="additional-speaker-${speakerCount}">Additional Speaker:</label>
+                        <input type="text" name="additional-speaker[]" id="additional-speaker-${speakerCount}" placeholder="Add Speaker" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="additional-description-${speakerCount}">Description:</label>
+                        <input type="text" name="additional-description[]" id="additional-description-${speakerCount}" placeholder="Speaker Description" required>
+                    </div>
+                `;
+
+                additionalSpeakersDiv.appendChild(newSpeaker);
+            });
+
+            // Add click event listener for the cancel button
+            const cancelButton = document.querySelector('.cancel-button');
+            cancelButton.addEventListener('click', function() {
+                if (confirm('Are you sure you want to cancel? All entered information will be lost.')) {
+                    document.querySelector('form').reset();
+                    additionalSpeakersDiv.innerHTML = ''; // Clear additional speakers
+                }
+            });
+
         });
     </script>
 

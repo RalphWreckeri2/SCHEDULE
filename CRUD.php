@@ -103,10 +103,9 @@ class UserManager
             }
 
             $user_id = $_SESSION['user_id'];
-            error_log("User ID from session: " . $user_id);
 
             // Prepare the statement
-            $stmt = $this->conn->prepare("CALL CreateEvent(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $this->conn->prepare("CALL CreateEvent(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, @event_id)");
             if (!$stmt) {
                 error_log("Prepare failed: " . $this->conn->error);
                 return false;
@@ -142,12 +141,27 @@ class UserManager
                 return false;
             }
 
-            error_log("Event created successfully in database");
             $stmt->close();
-            return true;
+
+            // Get the event_id
+            $result = $this->conn->query("SELECT @event_id as event_id");
+            $row = $result->fetch_assoc();
+            $event_id = $row['event_id'];
+
+            error_log("Event created successfully in database with ID: " . $event_id);
+            return $event_id;
         } catch (Exception $e) {
             error_log("Exception in CreateEvent: " . $e->getMessage());
             return false;
         }
+    }
+
+    public function GetEvents($user_id)
+    {
+        $stmt = $this->conn->prepare("CALL GetEvents(?)");
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return $result->fetch_all(MYSQLI_ASSOC); // Fetch all events as an associative array
     }
 }
