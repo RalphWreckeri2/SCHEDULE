@@ -162,6 +162,12 @@ class UserManager
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
         $result = $stmt->get_result();
-        return $result->fetch_all(MYSQLI_ASSOC); // Fetch all events as an associative array
+
+        // Check if there are any results
+        if ($result->num_rows > 0) {
+            return $result->fetch_all(MYSQLI_ASSOC); // Return events as an associative array
+        } else {
+            return []; // Return an empty array if no events found
+        }
     }
 }

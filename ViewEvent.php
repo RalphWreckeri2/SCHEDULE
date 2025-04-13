@@ -1,3 +1,16 @@
+<?php 
+include 'DbConnection.php';
+include 'CRUD.php';
+
+$UserManager = new UserManager($conn);
+session_start();
+
+if (isset($_SESSION['user_id'])) {
+    $user_id = $_SESSION['user_id'];
+    $event = $UserManager->GetEvents($user_id);
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>

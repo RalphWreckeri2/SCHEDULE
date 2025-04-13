@@ -232,6 +232,14 @@ h2 {
     gap: 20px;
 }
 
+.no-events-message {
+    color: #919191; 
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 20px;
+}
+
 .event-panel h3 {
     font-size: 24px;
     margin: 0 0 4px 0;
