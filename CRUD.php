@@ -24,6 +24,12 @@ class UserManager
         return $stmt->execute(); // Executing the statement
     }
 
+    public function UserExists($email) {
+        $stmt = $this->conn->prepare("SELECT * FROM users WHERE email= ?");
+        $stmt->bind_param("s", $email);
+        return $stmt->execute();
+    }
+
     public function AuthenticateUser($name, $email, $password)
     {
         $stmt = $this->conn->prepare("SELECT * FROM users WHERE name= ? AND email= ?"); // sabay na lang icheck para mas logical
@@ -82,7 +88,7 @@ class UserManager
     {
         $stmt = $this->conn->prepare("CALL UpdatePassword(?, ?)");
         if (!$stmt) {
-            die("Prepare failed: " . $this->conn->error);  // For debugging
+            die("Prepare failed: " . $this->conn->error);  // For debugging - wag na alisin baka masira eh
         }
         $stmt->bind_param("ss", $email, $new_password);
         return $stmt->execute();

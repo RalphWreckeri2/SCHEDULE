@@ -51,11 +51,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <h2>Forgot Password</h2>
                 <form method="post">
                     <div class="form-field">
-                        <input type="password" name="new_password" placeholder="New Password" required>
+                        <input type="password" name="new_password" placeholder="New Password" minlength="8" required>
                         <button type="button" class="toggle-password" data-target="new_password">Show</button>
                     </div>
                     <div class="form-field">
-                        <input type="password" name="confirm_new_password" placeholder="Confirm New Password" required>
+                        <input type="password" name="confirm_new_password" placeholder="Confirm New Password" minlength="8" required>
                         <button type="button" class="toggle-password" data-target="confirm_new_password">Show</button>
                     </div>
                     <div class="form-submit">

@@ -99,10 +99,10 @@ if (isset($_SESSION['user_id'])) {
                 </script>
             </div>
 
-            <!--need rin pala ng ui for a user na wlaa pang events... pero condition yun sa backend eh HAHA-->
-            <!-- php logic here to show the events created by the user, view button leads to ViewEvent -->
             <?php if (empty($events)) : ?>
-                <p>No events created yet. Start by creating your first event!</p>
+                <div class="no-events-wrapper">
+                    <a href="NewEvent.php" class="no-events-message">No events created yet. Start by creating your first event!</a>
+                </div>
             <?php else : ?>
                 <div class="event-panel-container">
                     <?php foreach ($events as $event) : ?>

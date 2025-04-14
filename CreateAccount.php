@@ -16,7 +16,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($UserManager->InsertUser($name, $email, $phone, $password)) {
         $showModal = true; // Success modal or redirection flag
     } else {
-        echo "<script>alert('Error: Could not create user.');</script>";
+        if ($UserManager->UserExists($email)) {
+            echo "<script>alert('Error: User already exists.');</script>";
+        }
     }
 }
 ?>
