@@ -92,7 +92,7 @@ $conn->close();
     <div class="container">
         <div class="panel-left">
             <div class="panel-content">
-                <img src="SCHEDULE RBG.png" alt="SCHEDULE logo" class="logo">
+                <img src="photos/SCHEDULE RBG.png" alt="SCHEDULE logo" class="logo">
                 <div class="separator"></div>
                 <p>Please make sure that the email you input is the same as the one you used on this website. A reset token will be sent to your email shortly.</p>
             </div>

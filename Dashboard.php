@@ -32,37 +32,37 @@ if (isset($_SESSION['success_message'])) {
     <!-- Sidebar Navigation -->
     <div class="sidebar">
         <div class="logo-section">
-            <img src="SCHEDULE RBG.png" alt="Schedule Logo" class="logo1">
+            <img src="photos/SCHEDULE RBG.png" alt="Schedule Logo" class="logo1">
         </div>
 
         <div class="separator"></div>
 
         <div class="nav-menu">
             <a href="Dashboard.php" class="nav-item" id="dashboard">
-                <img src="dashboard-icon.png" alt="Dashboard" class="nav-icon">
+                <img src="photos/dashboard-icon.png" alt="Dashboard" class="nav-icon">
                 <span>Dashboard</span>
             </a>
             <a href="MyEvents.php" class="nav-item" id="my-events">
-                <img src="my-events-icon.png" alt="My Events" class="nav-icon">
+                <img src="photos/my-events-icon.png" alt="My Events" class="nav-icon">
                 <span>My Events</span>
             </a>
             <a href="NewEvent.php" class="nav-item" id="new-event">
-                <img src="new-event-icon.png" alt="New Event" class="nav-icon">
+                <img src="photos/new-event-icon.png" alt="New Event" class="nav-icon">
                 <span>New Event</span>
             </a>
             <a href="AvailableEvent.php" class="nav-item" id="available-events">
-                <img src="available-events-icon.png" alt="Available Events" class="nav-icon">
+                <img src="photos/available-events-icon.png" alt="Available Events" class="nav-icon">
                 <span>Available Events</span>
             </a>
         </div>
 
         <div class="bottom-menu">
             <a href="Profile.php" class="nav-item" id="profile">
-                <img src="profile-icon.png" alt="Profile" class="nav-icon">
+                <img src="photos/profile-icon.png" alt="Profile" class="nav-icon">
                 <span>Profile</span>
             </a>
             <a href="Logout.php" class="nav-item" id="logout">
-                <img src="logout-icon.png" alt="Log Out" class="nav-icon">
+                <img src="photos/logout-icon.png" alt="Log Out" class="nav-icon">
                 <span>Log Out</span>
             </a>
         </div>
@@ -123,7 +123,7 @@ if (isset($_SESSION['success_message'])) {
             </div>
 
             <div class="view-more-button-container">
-                <img src="view-more-icon.png" alt="More" class="view-more-icon">
+                <img src="photos/view-more-icon.png" alt="More" class="view-more-icon">
                 <a href="AvailableEvent.php" class="view-more-button">View More Events</a>
             </div>
             <!--<div class="separator-line"></div>-->
@@ -169,42 +169,42 @@ if (isset($_SESSION['success_message'])) {
 
             <div class="developers">
                 <div class="developer-info">
-                    <img src="de-guzman.png" alt="Developer 1" class="developer-image">
+                    <img src="photos/de-guzman.png" alt="Developer 1" class="developer-image">
                     <p class="developer-name">James Patrick S. De Guzman</p>
                     <p class="developer-description">Group Leader</p>
                 </div>
                 <div class="developer-info">
-                    <img src="samonte.png" alt="Developer 2" class="developer-image">
+                    <img src="photos/samonte.png" alt="Developer 2" class="developer-image">
                     <p class="developer-name">Ralph Matthew A. Samonte</p>
                     <p class="developer-description">Assistant Leader</p>
                 </div>
                 <div class="developer-info">
-                    <img src="gonito.png" alt="Developer 3" class="developer-image">
+                    <img src="photos/gonito.png" alt="Developer 3" class="developer-image">
                     <p class="developer-name">Drred Klain M, Gonito</p>
                     <p class="developer-description">Group Member</p>
                 </div>
                 <div class="developer-info">
-                    <img src="cortiguerra.png" alt="Developer 4" class="developer-image">
+                    <img src="photos/cortiguerra.png" alt="Developer 4" class="developer-image">
                     <p class="developer-name">Vinz Emmanuel D. Cortiguerra</p>
                     <p class="developer-description">Group Member</p>
                 </div>
                 <div class="developer-info">
-                    <img src="montes.png" alt="Developer 5" class="developer-image">
+                    <img src="photos/montes.png" alt="Developer 5" class="developer-image">
                     <p class="developer-name">Kenneth E. Montes</p>
                     <p class="developer-description">Group Member</p>
                 </div>
                 <div class="developer-info">
-                    <img src="protestante.png" alt="Developer 6" class="developer-image">
+                    <img src="photos/protestante.png" alt="Developer 6" class="developer-image">
                     <p class="developer-name">Louisa Victoria C. Protestante</p>
                     <p class="developer-description">Group Member</p>
                 </div>
                 <div class="developer-info">
-                    <img src="tucay.png" alt="Developer 7" class="developer-image">
+                    <img src="photos/tucay.png" alt="Developer 7" class="developer-image">
                     <p class="developer-name">Alexander James L. Tucay</p>
                     <p class="developer-description">Group Member</p>
                 </div>
                 <div class="developer-info">
-                    <img src="macaraig.png" alt="Developer 8" class="developer-image">
+                    <img src="photos/macaraig.png" alt="Developer 8" class="developer-image">
                     <p class="developer-name">Angiela D. Macaraig</p>
                     <p class="developer-description">Group Member</p>
                 </div>
@@ -217,28 +217,28 @@ if (isset($_SESSION['success_message'])) {
 
             <div class="contact-info">
                 <div class="contact-item">
-                    <img src="address-icon.png" alt="Address" class="contact-icon">
+                    <img src="photos/address-icon.png" alt="Address" class="contact-icon">
                     <div class="contact-text">
                         <strong>Address:</strong> 1234 Rizal Street, Makati City, Metro Manila, Philippines
                     </div>
                 </div>
 
                 <div class="contact-item">
-                    <img src="email-icon.png" alt="Email" class="contact-icon">
+                    <img src="photos/email-icon.png" alt="Email" class="contact-icon">
                     <div class="contact-text">
                         <strong>Email:</strong> support@scheduleevents.ph
                     </div>
                 </div>
 
                 <div class="contact-item">
-                    <img src="phone-icon.png" alt="Phone" class="contact-icon">
+                    <img src="photos/phone-icon.png" alt="Phone" class="contact-icon">
                     <div class="contact-text">
                         <strong>Phone:</strong> (+63) 912-345-6789
                     </div>
                 </div>
 
                 <div class="contact-item">
-                    <img src="social-icon.png" alt="Socials" class="contact-icon">
+                    <img src="photos/social-icon.png" alt="Socials" class="contact-icon">
                     <div class="contact-text">
                         <strong>Socials:</strong> facebook.com/scheduleeventsph | twitter.com/scheduleeventsph
                     </div>

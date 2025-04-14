@@ -15,11 +15,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             echo "<script>alert('Password updated successfully!');
             window.location.href = 'SignIn.php';</script>"; 
         } else {
-            echo "<script>alert('Error updating password. Please try again.');</script>";
+            echo "<script>alert('Error updating password. Please try again.');;
+            window.location.href = 'SignIn.php'</script>";
         };
     } else {
         echo "<script>alert('Failed to update password. Passwords should match!');
-        window.location.href = 'NewPasssword.php' ;</script>";
+        window.location.href = 'NewPassword.php';</script>";
     }
 
 }
@@ -40,7 +41,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="container">
         <div class="panel-left">
             <div class="panel-content">
-                <img src="SCHEDULE RBG.png" alt="SCHEDULE logo" class="logo">
+                <img src="photos/SCHEDULE RBG.png" alt="SCHEDULE logo" class="logo">
                 <div class="separator"></div>
                 <p>Please enter your new password. Make sure they are the same. Do not forget it again Scheduler!</p>
             </div>

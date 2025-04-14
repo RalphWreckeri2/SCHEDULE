@@ -10,37 +10,37 @@
     <!-- Sidebar Navigation -->
     <div class="sidebar">
         <div class="logo-section">
-            <img src="SCHEDULE RBG.png" alt="Schedule Logo" class="logo1">
+            <img src="photos/SCHEDULE RBG.png" alt="Schedule Logo" class="logo1">
         </div>
         
         <div class="separator"></div>
         
         <div class="nav-menu">
             <a href="Dashboard.php" class="nav-item" id="dashboard">
-                <img src="dashboard-icon.png" alt="Dashboard" class="nav-icon">
+                <img src="photos/dashboard-icon.png" alt="Dashboard" class="nav-icon">
                 <span>Dashboard</span>
             </a>
             <a href="MyEvents.php" class="nav-item" id="my-events">
-                <img src="my-events-icon.png" alt="My Events" class="nav-icon">
+                <img src="photos/my-events-icon.png" alt="My Events" class="nav-icon">
                 <span>My Events</span>
             </a>
             <a href="NewEvent.php" class="nav-item" id="new-event">
-                <img src="new-event-icon.png" alt="New Event" class="nav-icon">
+                <img src="photos/new-event-icon.png" alt="New Event" class="nav-icon">
                 <span>New Event</span>
             </a>
             <a href="AvailableEvent.php" class="nav-item" id="available-events">
-                <img src="available-events-icon.png" alt="Available Events" class="nav-icon">
+                <img src="photos/available-events-icon.png" alt="Available Events" class="nav-icon">
                 <span>Available Events</span>
             </a>
         </div>
 
         <div class="bottom-menu">
             <a href="Profile.php" class="nav-item" id="profile">
-                <img src="profile-icon.png" alt="Profile" class="nav-icon">
+                <img src="photos/profile-icon.png" alt="Profile" class="nav-icon">
                 <span>Profile</span>
             </a>
             <a href="Logout.php" class="nav-item" id="logout">
-                <img src="logout-icon.png" alt="Log Out" class="nav-icon">
+                <img src="photos/logout-icon.png" alt="Log Out" class="nav-icon">
                 <span>Log Out</span>
             </a>
         </div>

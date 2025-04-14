@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="container">
         <div class="panel-left">
             <div class="panel-content">
-                <img src="SCHEDULE RBG.png" alt="SCHEDULE logo" class="logo">
+                <img src="photos/SCHEDULE RBG.png" alt="SCHEDULE logo" class="logo">
                 <div class="separator"></div>
                 <p>Welcome back to Schedule - an Event Registration and Management System catered to make your social life hassle free!</p>
                 <button class="btn btn-outline" onclick="window.location.href='AboutUs.html'">ABOUT US</button>

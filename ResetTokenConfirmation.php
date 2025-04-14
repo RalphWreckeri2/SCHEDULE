@@ -61,7 +61,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['token'])) {
     <div class="container">
         <div class="panel-left">
             <div class="panel-content">
-                <img src="SCHEDULE RBG.png" alt="SCHEDULE logo" class="logo">
+                <img src="photos/SCHEDULE RBG.png" alt="SCHEDULE logo" class="logo">
                 <div class="separator"></div>
                 <p>Please enter the reset token sent to your email. Make sure that it is the same.</p>
             </div>
