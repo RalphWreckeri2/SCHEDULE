@@ -24,7 +24,8 @@ class UserManager
         return $stmt->execute(); // Executing the statement
     }
 
-    public function UserExists($email) {
+    public function UserExists($email)
+    {
         $stmt = $this->conn->prepare("SELECT * FROM users WHERE email= ?");
         $stmt->bind_param("s", $email);
         return $stmt->execute();
@@ -174,6 +175,33 @@ class UserManager
             return $result->fetch_all(MYSQLI_ASSOC); // Return events as an associative array
         } else {
             return []; // Return an empty array if no events found
+        }
+    }
+
+    public function ProfileFetcher($user_id)
+    {
+        // Optional: Check if user is logged in
+        if (!isset($_SESSION['user_id'])) {
+            echo "<script>alert('Error: You are not logged in.')</script>";
+            return false;
+        }
+
+        // Prepare the SQL query
+        $stmt = $this->conn->prepare("CALL ProfileFetcher(?)");
+        if (!$stmt) {
+            error_log("Prepare failed: " . $this->conn->error);
+            return false;
+        }
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+
+        // Fetch result
+        $result = $stmt->get_result();
+
+        if ($result && $result->num_rows > 0) {
+            return $result->fetch_assoc(); // Return the user's profile data as an associative array
+        } else {
+            return false; // No user found
         }
     }
 }

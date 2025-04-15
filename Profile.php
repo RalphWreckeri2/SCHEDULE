@@ -1,3 +1,22 @@
+<?php 
+include 'DbConnection.php';
+include 'CRUD.php';
+
+$UserManager = new UserManager($conn);
+session_start();
+
+if (isset($_SESSION['user_id'])) {
+    $user_id = $_SESSION['user_id'];
+    $profile = $UserManager->ProfileFetcher($user_id);
+    
+    if (!$profile) {
+        // Handle the case where no profile data is returned
+        error_log("Profile data not found for user_id: $user_id");
+        $profile = ['name' => 'Name', 'email' => 'Email', 'phone' => 'Phone Number'];
+    }
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -63,9 +82,9 @@
                     <img src="photos/samonte.png" alt="Profile Picture" class="profile-pic">
                 </div>
                 <div class="profile-info-wrapper">
-                    <h2 class="profile-name">Name</h2>
-                    <p class="profile-details">Email here</p>
-                    <p class="profile-details">Phone Number</p>
+                    <h2 class="profile-name"><?php echo $profile ? htmlspecialchars ($profile['name']) : 'Name'; ?></h2>
+                    <p class="profile-details"><?php echo $profile ? htmlspecialchars ($profile['email']) : 'Email'; ?></p>
+                    <p class="profile-details"><?php echo $profile ? htmlspecialchars ($profile['phone']) : 'Phone Number'; ?></p>
                 </div>
                 <div class="profile-edit-wrapper">
                     <button class="edit-button">Edit Profile Picture</button>
