@@ -29,6 +29,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="container">
         <div class="panel-left">
             <div class="panel-content">
+                <div class="back-button">
+                    <a href="javascript:history.back()" class="btn btn-secondary"><img src="photos/back-button.png" alt="Back" class="back-button"></a>
+                </div>
                 <h1>Event Registration</h1>
                 <!--Insert dito ng event details using php-->
             </div>
