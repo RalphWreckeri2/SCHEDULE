@@ -204,4 +204,21 @@ class UserManager
             return false; // No user found
         }
     }
+
+    public function EventFetcher($user_id, $event_category) {
+        $stmt = $this->conn->prepare("CALL EventFetcher(?, ?)");
+        $stmt->bind_param("is", $user_id, $event_category);
+
+        if ($stmt->execute()) {
+            $result = $stmt->get_result();
+            if ($result && $result->num_rows > 0) {
+                return $result->fetch_all(MYSQLI_ASSOC); // Return events as an associative array
+            } else {
+                return []; // Return an empty array if no events found
+            }
+        } else {
+            error_log("Execute failed: " . $stmt->error);
+            return false; // Execution failed   
+        }
+    }
 }
