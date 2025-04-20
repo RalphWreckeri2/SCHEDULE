@@ -1,6 +1,7 @@
 <?php
 include 'DbConnection.php';
 include 'CRUD.php';
+include 'EventRegistration.php';
 
 $UserManager = new UserManager($conn);
 session_start();
@@ -94,23 +95,25 @@ if (isset($_SESSION['user_id'])) {
                 Discover a variety of events happening around you. Join us to learn, network, and grow!
             </p>
 
-            <?php if(empty($events)) : ?>
+            <?php if (empty($events)) : ?>
                 <div class="no-events-wrapper">
                     <p class="no-events-message">Sorry Scheduler, there are no available events at this point in time.</p>
                 </div>
-           <?php else : ?>
-            <div class="event-panel-container">
-                <?php foreach($events as $event) :?>
-                    <div class="event-panel">
-                        <img src="<?php echo htmlspecialchars($event['event_photo'])?>" alt="Event Photo" class="event-image">
-                        <h3><?php echo htmlspecialchars($event['event_name'])?></h3>
-                        <p class="event-category"><strong>Category: </strong><?php echo htmlspecialchars($event['event_category'])?></p>
-                        <p class="event-slots"><strong>Slots: </strong><?php echo htmlspecialchars($event['event_slots'])?></p>
-                        <p class="event-description"><?php echo htmlspecialchars($event['event_description'])?></p>
-                        <div class="button-wrapper"><button class="register-button">Register Now</button></div>
-                    </div>
-                <?php endforeach; ?>
-            </div>
+            <?php else : ?>
+                <div class="event-panel-container">
+                    <?php foreach ($events as $event) : ?>
+                        <div class="event-panel">
+                            <img src="<?php echo htmlspecialchars($event['event_photo']) ?>" alt="Event Photo" class="event-image">
+                            <h3><?php echo htmlspecialchars($event['event_name']) ?></h3>
+                            <p class="event-category"><strong>Category: </strong><?php echo htmlspecialchars($event['event_category']) ?></p>
+                            <p class="event-slots"><strong>Slots: </strong><?php echo htmlspecialchars($event['event_slots']) ?></p>
+                            <p class="event-description"><?php echo htmlspecialchars($event['event_description']) ?></p>
+                            <div class="button-wrapper">
+                                <button class="register-button open-registration-modal">Register Now</button>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
             <?php endif; ?>
 
             <div class="view-more-button-container">
@@ -284,6 +287,27 @@ if (isset($_SESSION['user_id'])) {
                     // and the above code will set the correct active state
                 });
             });
+        });
+
+        // Event Registration Modal Logic
+        const eventRegistrationModal = document.getElementById("eventRegistrationModal");
+        const openModalButtons = document.querySelectorAll(".open-registration-modal");
+        const closeModalButton = document.querySelector(".event-registration-close-button");
+
+        openModalButtons.forEach(button => {
+            button.addEventListener("click", function() {
+                eventRegistrationModal.style.display = "flex";
+            });
+        });
+
+        closeModalButton.addEventListener("click", function() {
+            eventRegistrationModal.style.display = "none";
+        });
+
+        window.addEventListener("click", function(event) {
+            if (event.target === eventRegistrationModal) {
+                eventRegistrationModal.style.display = "none";
+            }
         });
 
         //for modal(popup) after a successful sign in

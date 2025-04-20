@@ -26,7 +26,7 @@ body {
     background-color: #fefefe;
     margin: 15% auto;
     padding: 20px;
-    border: 3px solid #74b1f4;
+    border:none;
     width: 50%; /* Could be more or less, depending on screen size */
     height: auto; /* Adjust height based on content */
     max-height: 100vh; /* Limit the maximum height */
@@ -48,7 +48,7 @@ body {
 
 .close-btn:hover,
 .close-btn:focus {
-    color: #74b1f4;
+    color: black;
     text-decoration: none;
     cursor: pointer;
 }
@@ -1014,6 +1014,111 @@ button.submit-button:hover {
 
 .participants-list-labels .label {
     font-weight: bold;
+}
+
+/* Scoped styles for the Event Registration Modal */
+.event-registration-modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5); /* Black background with opacity */
+    justify-content: center;
+    align-items: center;
+}
+
+/* Reduce spacing between texts */
+.event-registration-modal .event-direction-slots p {
+    margin: 5px 0; /* Reduce vertical spacing */
+    font-size: 14px; /* Adjust font size if needed */
+    color: #333; /* Ensure consistent text color */
+}
+
+/* Adjust the deadline text */
+.event-registration-modal .deadline-wrapper p {
+    margin-top: 10px; /* Add slight spacing above */
+    font-size: 12px; /* Smaller font size for the deadline */
+    color: #666; /* Subtle text color */
+}
+
+.event-registration-modal-content {
+    background-color: #fff;
+    margin: auto;
+    padding: 20px;
+    border-radius: 10px;
+    width: 50%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    animation: fadeInEventRegistration 0.3s ease-in-out;
+}
+
+.event-registration-close-button {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.event-registration-close-button:hover,
+.event-registration-close-button:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Scoped styles for input fields in the Event Registration Modal */
+.event-registration-modal input[type="text"],
+.event-registration-modal input[type="email"],
+.event-registration-modal input[type="tel"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
+    box-sizing: border-box;
+    transition: border 0.3s ease;
+    background-color: #f9f9f9;
+    margin-top: 10px;
+    margin-bottom: 0; /* Add spacing between fields */
+}
+
+.event-registration-modal input:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+/* Scoped styles for the Register button in the Event Registration Modal */
+.event-registration-modal .btn-primary {
+    background-color: hsl(211, 69%, 50%);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 14px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease-in-out, background-color 0.3s ease;
+}
+
+.event-registration-modal .btn-primary:hover {
+    background-color: hsl(211, 69%, 40%);
+    transform: scale(1.05);
+    font-weight: bold;
+}
+
+@keyframes fadeInEventRegistration {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 /* Responsive layout: Adjust to 3 columns on medium screens (like tablets) */
