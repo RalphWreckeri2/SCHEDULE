@@ -107,11 +107,11 @@ if (isset($_SESSION['user_id'])) {
                 <div class="event-panel-container">
                     <?php foreach ($events as $event) : ?>
                         <div class="event-panel">
-                            <img src="<?php echo $event['event_photo']; ?>" alt="Event Image" class="event-image">
-                            <h3><?php echo $event['event_name']; ?></h3>
-                            <p class="event-category"><?php echo $event['event_category']; ?></p>
-                            <p class="event-slots"><?php echo $event['event_slots']; ?> slots available</p>
-                            <p class="event-description"><?php echo $event['event_description']; ?></p>
+                            <img src="<?php echo htmlspecialchars($event['event_photo']); ?>" alt="Event Image" class="event-image">
+                            <h3><?php echo htmlspecialchars($event['event_name']); ?></h3>
+                            <p class="event-category"><strong>Category: </strong><?php echo htmlspecialchars($event['event_category']); ?></p>
+                            <p class="event-slots"><strong>Slots: </strong><?php echo htmlspecialchars($event['event_slots']); ?></p>
+                            <p class="event-description"><?php echo htmlspecialchars($event['event_description']); ?></p>
                             <div class="button-wrapper">
                                 <button class="view-button">View</button>
                             </div>

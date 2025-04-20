@@ -221,4 +221,21 @@ class UserManager
             return false; // Execution failed   
         }
     }
+
+    public function EventFetcherInDb($user_id) {
+        $stmt = $this->conn->prepare('CALL EventFetcherInDb(?)');
+        $stmt->bind_param("i", $user_id);
+
+        if ($stmt->execute()) {
+            $result = $stmt->get_result();
+            if ($result && $result->num_rows > 0) {
+                return $result->fetch_all(MYSQLI_ASSOC);
+            } else {
+                return [];
+            }
+        } else {
+            error_log("Execute failed: " . $stmt->error);
+            return false;
+        }
+    }
 }

@@ -1,11 +1,19 @@
 <?php
 include 'DbConnection.php';
+include 'CRUD.php';
+
+$UserManager = new UserManager($conn);
 session_start();
 
 // Check if there's a success message in the session
 if (isset($_SESSION['success_message'])) {
     $success_message = $_SESSION['success_message'];
     unset($_SESSION['success_message']); // Remove the message from the session
+}
+
+if (isset($_SESSION['user_id'])) {
+    $user_id = $_SESSION['user_id'];
+    $events = $UserManager->EventFetcherInDb($user_id);
 }
 ?>
 
@@ -81,46 +89,29 @@ if (isset($_SESSION['success_message'])) {
 
             <div class="separator-line"></div>
 
-            <h2>Explore New Events</h2>
+            <h2>Explore Featured Events</h2>
             <p class="description">
                 Discover a variety of events happening around you. Join us to learn, network, and grow!
             </p>
 
-            <!-- Event Panels (lalagyan ng php dine - select keme -- pede ding i for loop na lang sya tas same formats haha) -->
+            <?php if(empty($events)) : ?>
+                <div class="no-events-wrapper">
+                    <p class="no-events-message">Sorry Scheduler, there are no available events at this point in time.</p>
+                </div>
+           <?php else : ?>
             <div class="event-panel-container">
-                <div class="event-panel">
-                    <img src="event1.jpg" alt="Event 1" class="event-image">
-                    <h3>Event Title 1</h3>
-                    <p class="event-category">Event Category</p>
-                    <p class="event-slots">Slots Available</p>
-                    <p class="event-description">Join us for an exciting event that will enhance your skills and knowledge.</p>
-                    <div class="button-wrapper"><button class="register-button">Register Now</button></div>
-                </div>
-                <div class="event-panel">
-                    <img src="event1.jpg" alt="Event 1" class="event-image">
-                    <h3>Event Title 1</h3>
-                    <p class="event-category">Event Category</p>
-                    <p class="event-slots">Slots Available</p>
-                    <p class="event-description">Join us for an exciting event that will enhance your skills and knowledge.</p>
-                    <div class="button-wrapper"><button class="register-button">Register Now</button></div>
-                </div>
-                <div class="event-panel">
-                    <img src="event1.jpg" alt="Event 1" class="event-image">
-                    <h3>Event Title 1</h3>
-                    <p class="event-category">Event Category</p>
-                    <p class="event-slots">Slots Available</p>
-                    <p class="event-description">Join us for an exciting event that will enhance your skills and knowledge.</p>
-                    <div class="button-wrapper"><button class="register-button">Register Now</button></div>
-                </div>
-                <div class="event-panel">
-                    <img src="event1.jpg" alt="Event 1" class="event-image">
-                    <h3>Event Title 1</h3>
-                    <p class="event-category">Event Category</p>
-                    <p class="event-slots">Slots Available</p>
-                    <p class="event-description">Join us for an exciting event that will enhance your skills and knowledge.</p>
-                    <div class="button-wrapper"><button class="register-button">Register Now</button></div>
-                </div>
+                <?php foreach($events as $event) :?>
+                    <div class="event-panel">
+                        <img src="<?php echo htmlspecialchars($event['event_photo'])?>" alt="Event Photo" class="event-image">
+                        <h3><?php echo htmlspecialchars($event['event_name'])?></h3>
+                        <p class="event-category"><strong>Category: </strong><?php echo htmlspecialchars($event['event_category'])?></p>
+                        <p class="event-slots"><strong>Slots: </strong><?php echo htmlspecialchars($event['event_slots'])?></p>
+                        <p class="event-description"><?php echo htmlspecialchars($event['event_description'])?></p>
+                        <div class="button-wrapper"><button class="register-button">Register Now</button></div>
+                    </div>
+                <?php endforeach; ?>
             </div>
+            <?php endif; ?>
 
             <div class="view-more-button-container">
                 <img src="photos/view-more-icon.png" alt="More" class="view-more-icon">
