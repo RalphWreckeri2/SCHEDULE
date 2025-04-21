@@ -205,7 +205,8 @@ class UserManager
         }
     }
 
-    public function EventFetcher($user_id, $event_category) {
+    public function EventFetcher($user_id, $event_category)
+    {
         $stmt = $this->conn->prepare("CALL EventFetcher(?, ?)");
         $stmt->bind_param("is", $user_id, $event_category);
 
@@ -222,8 +223,9 @@ class UserManager
         }
     }
 
-    public function EventFetcherInDb($user_id) {
-        $stmt = $this->conn->prepare('CALL EventFetcherInDb(?)');
+    public function EventFetcherInDb($user_id)
+    {
+        $stmt = $this->conn->prepare("CALL EventFetcherInDb(?)");
         $stmt->bind_param("i", $user_id);
 
         if ($stmt->execute()) {
@@ -235,6 +237,52 @@ class UserManager
             }
         } else {
             error_log("Execute failed: " . $stmt->error);
+            return false;
+        }
+    }
+
+    public function EventDetailsFetcher($event_id)
+    {
+        $stmt = $this->conn->prepare("SELECT e.event_slots, e.event_date, 
+            (SELECT COUNT(*) FROM eventregistration er WHERE er.event_id = e.event_id) AS taken_slots 
+            FROM events e WHERE e.event_id = ?");
+        $stmt->bind_param("i", $event_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result && $result->num_rows > 0) {
+            return $result->fetch_assoc(); // Return event details as an associative array
+        } else {
+            error_log("No event found for event_id: " . $event_id); // Log the error
+            return false; // No event found
+        }
+    }
+
+    public function GetUserDetails($user_id) {
+        $stmt = $this->conn->prepare("SELECT name, email, phone FROM users WHERE id = ?");
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($result && $result->num_rows > 0) {
+            return $result->fetch_assoc(); // Return user details as an associative array
+        } else {
+            return false; // No user found
+        }
+    }
+
+    public function EventRegistration($user_id, $event_id, $name, $email, $phone)
+    {
+        if (!isset($_SESSION['user_id']) || !isset($_SESSION['event_id'])) {
+            error_log("Error: user id or event id is not provided");
+            return false;
+        }
+
+        $stmt = $this->conn->prepare('CALL EventRegistration(?, ?, ?, ?, ?)');
+        $stmt->bind_param("iisss", $user_id, $event_id, $name, $email, $phone);
+
+        if ($stmt->execute()) {
+            return true;
+        } else {
             return false;
         }
     }

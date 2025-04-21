@@ -1,10 +1,14 @@
 <?php
-include 'DbConnection.php';
-include 'CRUD.php';
-include 'EventRegistration.php';
+require_once  'DbConnection.php';
+require_once  'CRUD.php';
+require_once 'EventRegistration.php';
 
 $UserManager = new UserManager($conn);
-session_start();
+
+// Check if a session is already active
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Check if there's a success message in the session
 if (isset($_SESSION['success_message'])) {
@@ -16,6 +20,7 @@ if (isset($_SESSION['user_id'])) {
     $user_id = $_SESSION['user_id'];
     $events = $UserManager->EventFetcherInDb($user_id);
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -35,6 +40,14 @@ if (isset($_SESSION['user_id'])) {
         <div class="modal-content">
             <span class="close">&times;</span>
             <p id="success-message"></p>
+        </div>
+    </div>
+
+    <!-- Modal Container -->
+    <div id="eventRegistrationModal" class="event-registration-modal" style="display: none;">
+        <div class="event-registration-modal-content">
+            <span class="event-registration-close-button">&times;</span>
+            <div id="modal-content"></div> <!-- Content will be loaded here -->
         </div>
     </div>
 
@@ -109,7 +122,7 @@ if (isset($_SESSION['user_id'])) {
                             <p class="event-slots"><strong>Slots: </strong><?php echo htmlspecialchars($event['event_slots']) ?></p>
                             <p class="event-description"><?php echo htmlspecialchars($event['event_description']) ?></p>
                             <div class="button-wrapper">
-                                <button class="register-button open-registration-modal">Register Now</button>
+                                <button class="register-button open-registration-modal" data-event-id="<?php echo htmlspecialchars($event['event_id']); ?>">Register Now</button>
                             </div>
                         </div>
                     <?php endforeach; ?>
