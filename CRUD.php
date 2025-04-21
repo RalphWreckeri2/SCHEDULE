@@ -274,16 +274,40 @@ class UserManager
     {
         if (!isset($_SESSION['user_id']) || !isset($_SESSION['event_id'])) {
             error_log("Error: user id or event id is not provided");
-            return false;
+            return [
+                'success' => false,
+                'message' => 'User ID or Event ID is missing.'
+            ];
         }
 
+        // Check if the user is already registered for the event
+        $checkStmt = $this->conn->prepare("SELECT * FROM eventregistration WHERE user_id = ? AND event_id = ?");
+        $checkStmt->bind_param("ii", $user_id, $event_id);
+        $checkStmt->execute();
+        $checkResult = $checkStmt->get_result();
+
+        if ($checkResult && $checkResult->num_rows > 0) {
+            // User is already registered
+            return [
+                'success' => false,
+                'message' => 'You are already registered for this event.'
+            ];
+        }
+
+        // Proceed with registration if the user is not already registered
         $stmt = $this->conn->prepare('CALL EventRegistration(?, ?, ?, ?, ?)');
         $stmt->bind_param("iisss", $user_id, $event_id, $name, $email, $phone);
 
         if ($stmt->execute()) {
-            return true;
+            return [
+                'success' => true,
+                'message' => 'Registration successful!'
+            ];
         } else {
-            return false;
+            return [
+                'success' => false,
+                'message' => 'Registration failed. Please try again later.'
+            ];
         }
     }
 }

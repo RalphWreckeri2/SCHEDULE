@@ -302,25 +302,58 @@ if (isset($_SESSION['user_id'])) {
             });
         });
 
-        // Event Registration Modal Logic
-        const eventRegistrationModal = document.getElementById("eventRegistrationModal");
-        const openModalButtons = document.querySelectorAll(".open-registration-modal");
-        const closeModalButton = document.querySelector(".event-registration-close-button");
+        const modal = document.getElementById('eventRegistrationModal');
+        const closeModalButton = document.querySelector('.event-registration-close-button');
+        const registerButtons = document.querySelectorAll('.open-registration-modal');
 
-        openModalButtons.forEach(button => {
-            button.addEventListener("click", function() {
-                eventRegistrationModal.style.display = "flex";
+        // Open modal and load content
+        registerButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const eventId = this.getAttribute('data-event-id');
+
+                // Fetch modal content via AJAX
+                fetch(`EventRegistration.php?event_id=${eventId}`)
+                    .then(response => response.text())
+                    .then(data => {
+                        document.getElementById('modal-content').innerHTML = data;
+                        modal.style.display = 'flex';
+
+                        // Add event listener for form submission
+                        const form = document.querySelector('#event-registration-form');
+                        if (form) {
+                            form.addEventListener('submit', function (e) {
+                                e.preventDefault(); // Prevent default form submission
+
+                                const formData = new FormData(form);
+
+                                // Submit form via AJAX
+                                fetch('EventRegistration.php', {
+                                    method: 'POST',
+                                    body: formData
+                                })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        // Show success or error message in a modal
+                                        showModal(data.message, data.success);
+                                    })
+                                    .catch(error => console.error('Error:', error));
+                            });
+                        }
+                    })
+                    .catch(error => console.error('Error loading modal content:', error));
             });
         });
 
-        closeModalButton.addEventListener("click", function() {
-            eventRegistrationModal.style.display = "none";
+        // Close modal
+        closeModalButton.addEventListener('click', function() {
+            modal.style.display = 'none';
         });
 
-        window.addEventListener("click", function(event) {
-            if (event.target === eventRegistrationModal) {
-                eventRegistrationModal.style.display = "none";
-            }
+        // Close modal when clicking outside the modal content
+        window.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
         });
 
         //for modal(popup) after a successful sign in
