@@ -1109,48 +1109,50 @@ button.submit-button:hover {
     transform: scale(1.05);
     font-weight: bold;
 }
+/* Add some styling for the cancel button */
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
 
-/* Pop-Up Message Styling */
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+.already-registered {
+    text-align: center;
+    padding: 20px;
+}
+
+.already-registered p {
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+/* Add styling for popup messages */
 .popup-message {
     position: fixed;
     top: 20px;
     right: 20px;
-    background-color: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 10px 20px;
+    padding: 15px 25px;
     border-radius: 5px;
-    font-size: 14px;
-    z-index: 10000;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-    animation: fadeInOut 3s ease-in-out;
+    color: white;
+    font-weight: bold;
+    z-index: 1000;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .popup-message.success {
-    background-color: green;
+    background-color: #28a745;
 }
 
 .popup-message.error {
-    background-color: red;
-}
-
-/* Fade-in and fade-out animation */
-@keyframes fadeInOut {
-    0% {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    10% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    90% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    100% {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
+    background-color: #dc3545;
 }
 
 @keyframes fadeInEventRegistration {

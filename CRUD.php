@@ -310,4 +310,41 @@ class UserManager
             ];
         }
     }
+
+    public function CancelRegistration($user_id, $event_id) 
+    {
+        // Prepare the DELETE query
+        $stmt = $this->conn->prepare("DELETE FROM eventregistration WHERE user_id = ? AND event_id = ?");
+        if (!$stmt) {
+            return [
+                'success' => false,
+                'message' => 'Database error: ' . $this->conn->error
+            ];
+        }
+
+        // Bind the parameters
+        $stmt->bind_param("ii", $user_id, $event_id);
+
+        // Execute the query
+        $stmt->execute();
+
+        // Check if any rows were affected
+        if ($stmt->affected_rows > 0) {
+            return [
+                'success' => true,
+                'message' => 'Your registration has been canceled.'
+            ];
+        } else {
+            return [
+                'success' => false,
+                'message' => 'Your registration cannot be canceled. It may not exist.'
+            ];
+        }
+    }
+
+    public function UpdateProfile($user_id, $user_profile) {
+        $stmt = $this->conn->prepare("CALL UpdateProfile(?, ?)");
+        $stmt->bind_param("is", $user_id, $user_profile);
+        $stmt->execute();
+    }
 }

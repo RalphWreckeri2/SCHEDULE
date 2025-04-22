@@ -1,9 +1,16 @@
 <?php
-include 'DbConnection.php';
-include 'CRUD.php';
+require_once 'DbConnection.php';
+require_once 'CRUD.php';
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $UserManager = new UserManager($conn);
 
-session_start();
+if (isset($_GET['event_id'])) {
+    $_SESSION['event_id'] = $_GET['event_id'];
+}
 
 if (isset($_SESSION['user_id'])) {
     $user_id = $_SESSION['user_id'];
@@ -25,6 +32,23 @@ if (isset($_SESSION['user_id'])) {
 </head>
 
 <body>
+
+    <!-- Modal -->
+    <div id="success-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <p id="success-message"></p>
+        </div>
+    </div>
+
+    <!-- Modal Container -->
+    <div id="eventRegistrationModal" class="event-registration-modal" style="display: none;">
+        <div class="event-registration-modal-content">
+            <span class="event-registration-close-button">&times;</span>
+            <div id="modal-content"></div> <!-- Content will be loaded here -->
+        </div>
+    </div>
+
     <!-- Sidebar Navigation -->
     <div class="sidebar">
         <div class="logo-section">
@@ -118,55 +142,58 @@ if (isset($_SESSION['user_id'])) {
                             <p class="event-category"><strong>Category: </strong><?php echo htmlspecialchars($event['event_category']) ?></p>
                             <p class="event-slots"><strong>Slots: </strong><?php echo htmlspecialchars($event['event_slots']) ?></p>
                             <p class="event-description"><?php echo htmlspecialchars($event['event_description']) ?></p>
-                            <div class="button-wrapper"><button class="register-button">Register Now</button></div>
+                            <div class="button-wrapper">
+                                <button class="register-button open-registration-modal" data-event-id="<?php echo htmlspecialchars($event['event_id']); ?>">Register Now</button>
+                            </div>
                         </div>
-                    <?php endforeach; ?>
                 </div>
-            <?php endif; ?>
-
-            <div class="separator-line"></div>
-
-            <h2>Contact Us</h2>
-            <p class="description">
-                Have questions or need assistance? We're here to help! Feel free to reach out to us for any inquiries about event registrations, technical support, or general concerns.
-            </p>
-
-            <div class="contact-info">
-                <div class="contact-item">
-                    <img src="photos/address-icon.png" alt="Address" class="contact-icon">
-                    <div class="contact-text">
-                        <strong>Address:</strong> 1234 Rizal Street, Makati City, Metro Manila, Philippines
-                    </div>
-                </div>
-
-                <div class="contact-item">
-                    <img src="photos/email-icon.png" alt="Email" class="contact-icon">
-                    <div class="contact-text">
-                        <strong>Email:</strong> support@scheduleevents.ph
-                    </div>
-                </div>
-
-                <div class="contact-item">
-                    <img src="photos/phone-icon.png" alt="Phone" class="contact-icon">
-                    <div class="contact-text">
-                        <strong>Phone:</strong> (+63) 912-345-6789
-                    </div>
-                </div>
-
-                <div class="contact-item">
-                    <img src="photos/social-icon.png" alt="Socials" class="contact-icon">
-                    <div class="contact-text">
-                        <strong>Socials:</strong> facebook.com/scheduleeventsph | twitter.com/scheduleeventsph
-                    </div>
-                </div>
-            </div>
-
-            <p class="social-text">
-                You can also follow us on our social media channels for updates and announcements!
-            </p>
-
-            <p class="copyright">All Rights Reserved. 2025</p>
+            <?php endforeach; ?>
         </div>
+    <?php endif; ?>
+
+    <div class="separator-line"></div>
+
+    <h2>Contact Us</h2>
+    <p class="description">
+        Have questions or need assistance? We're here to help! Feel free to reach out to us for any inquiries about event registrations, technical support, or general concerns.
+    </p>
+
+    <div class="contact-info">
+        <div class="contact-item">
+            <img src="photos/address-icon.png" alt="Address" class="contact-icon">
+            <div class="contact-text">
+                <strong>Address:</strong> 1234 Rizal Street, Makati City, Metro Manila, Philippines
+            </div>
+        </div>
+
+        <div class="contact-item">
+            <img src="photos/email-icon.png" alt="Email" class="contact-icon">
+            <div class="contact-text">
+                <strong>Email:</strong> support@scheduleevents.ph
+            </div>
+        </div>
+
+        <div class="contact-item">
+            <img src="photos/phone-icon.png" alt="Phone" class="contact-icon">
+            <div class="contact-text">
+                <strong>Phone:</strong> (+63) 912-345-6789
+            </div>
+        </div>
+
+        <div class="contact-item">
+            <img src="photos/social-icon.png" alt="Socials" class="contact-icon">
+            <div class="contact-text">
+                <strong>Socials:</strong> facebook.com/scheduleeventsph | twitter.com/scheduleeventsph
+            </div>
+        </div>
+    </div>
+
+    <p class="social-text">
+        You can also follow us on our social media channels for updates and announcements!
+    </p>
+
+    <p class="copyright">All Rights Reserved. 2025</p>
+    </div>
     </div>
 
     <script>
@@ -202,12 +229,130 @@ if (isset($_SESSION['user_id'])) {
                 }
             });
 
-            // Add click event listeners for navigation within the same page
-            navItems.forEach(function(item) {
-                item.addEventListener('click', function() {
-                    // We don't need to do anything here since the page will reload
-                    // and the above code will set the correct active state
+            // Function to show a pop-up message
+            function showPopup(message, isSuccess) {
+                const popup = document.createElement('div');
+                popup.className = `popup-message ${isSuccess ? 'success' : 'error'}`;
+                popup.textContent = message;
+
+                document.body.appendChild(popup);
+
+                // Remove the pop-up after 3 seconds
+                setTimeout(() => {
+                    popup.remove();
+                }, 3000);
+            }
+
+            const modal = document.getElementById('eventRegistrationModal');
+            const closeModalButton = document.querySelector('.event-registration-close-button');
+            const registerButtons = document.querySelectorAll('.open-registration-modal');
+
+            // Function to handle cancel registration
+            function setupCancelButton() {
+                const cancelButton = document.getElementById('cancel-registration-button');
+                if (cancelButton) {
+                    cancelButton.addEventListener('click', function() {
+                        if (confirm('Are you sure you want to cancel your registration?')) {
+                            const eventId = this.getAttribute('data-event-id');
+
+                            const formData = new FormData();
+                            formData.append('action', 'cancel_registration');
+                            formData.append('event_id', eventId);
+
+                            fetch('EventRegistration.php', {
+                                    method: 'POST',
+                                    body: formData
+                                })
+                                .then(res => res.json())
+                                .then(data => {
+                                    // Show the pop-up message
+                                    showPopup(data.message, data.success);
+
+                                    if (data.success) {
+                                        // Reload the modal content to show registration form again
+                                        setTimeout(() => {
+                                            loadModalContent(eventId);
+                                        }, 1000);
+                                    }
+                                })
+                                .catch(err => {
+                                    console.error('Cancellation error:', err);
+                                    showPopup('An error occurred during cancellation', false);
+                                });
+                        }
+                    });
+                }
+            }
+
+            // Function to handle form submission
+            function setupRegistrationForm() {
+                const form = document.getElementById('event-registration-form');
+                if (form) {
+                    form.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        const formData = new FormData(form);
+                        const eventId = formData.get('event_id');
+
+                        fetch('EventRegistration.php', {
+                                method: 'POST',
+                                body: formData
+                            })
+                            .then(res => res.json())
+                            .then(data => {
+                                // Show the pop-up message
+                                showPopup(data.message, data.success);
+
+                                if (data.success) {
+                                    // Reload the modal content to show cancel button
+                                    setTimeout(() => {
+                                        loadModalContent(eventId);
+                                    }, 1000);
+                                }
+                            })
+                            .catch(err => {
+                                console.error('Registration error:', err);
+                                showPopup('An error occurred during registration', false);
+                            });
+                    });
+                }
+            }
+
+            // Function to load modal content
+            function loadModalContent(eventId) {
+                fetch(`EventRegistration.php?event_id=${eventId}`)
+                    .then(response => response.text())
+                    .then(data => {
+                        document.getElementById('modal-content').innerHTML = data;
+
+                        // Setup event handlers for the new content
+                        setupCancelButton();
+                        setupRegistrationForm();
+                    })
+                    .catch(error => {
+                        console.error('Error loading modal content:', error);
+                        showPopup('Error loading registration form', false);
+                    });
+            }
+
+            // Open modal and load content
+            registerButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const eventId = this.getAttribute('data-event-id');
+                    modal.style.display = 'flex';
+                    loadModalContent(eventId);
                 });
+            });
+
+            // Close modal
+            closeModalButton.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+
+            // Close modal when clicking outside the modal content
+            window.addEventListener('click', function(event) {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
             });
         });
     </script>

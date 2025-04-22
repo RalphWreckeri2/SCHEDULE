@@ -57,8 +57,21 @@ if (isset($_SESSION['user_id'])) {
     }
 }
 
-// Handle form submission via AJAX
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
+// Handle cancellation request
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['action']) && $_POST['action'] === 'cancel_registration') {
+    $event_id = $_POST['event_id'];
+    $user_id = $_SESSION['user_id'];
+
+    // Call the CancelRegistration method
+    $result = $UserManager->CancelRegistration($user_id, $event_id);
+
+    // Return the result as JSON
+    echo json_encode($result);
+    exit;
+}
+
+// Handle registration request
+if ($_SERVER["REQUEST_METHOD"] === "POST" && (!isset($_POST['action']) || $_POST['action'] !== 'cancel_registration')) {
     $event_id = $_POST['event_id'];
     $name = trim($_POST['name']);
     $email = trim($_POST['email']);
@@ -81,7 +94,13 @@ if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET['event_id'])) {
 ?>
     <h2 class="registration-information">Registration Information</h2>
     <div class="event-direction-slots">
-        <p class="direction">Fill in the form below to register for the event.</p>
+        <p class="direction">
+            <?php if (!$isAlreadyRegistered): ?>
+                Fill in the form below to register for the event.
+            <?php else: ?>
+                You are already registered for this event.
+            <?php endif; ?>
+        </p>
         <p class="slots-available">Number of slots available: <?php echo $availableSlots; ?></p>
     </div>
 
@@ -107,6 +126,9 @@ if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET['event_id'])) {
     <?php else: ?>
         <div class="already-registered">
             <p>You are already registered for this event.</p>
+            <div class="form-submit">
+                <button type="button" class="btn btn-danger" id="cancel-registration-button" data-event-id="<?php echo htmlspecialchars($_SESSION['event_id']); ?>">CANCEL REGISTRATION</button>
+            </div>
         </div>
     <?php endif; ?>
 <?php
@@ -117,37 +139,8 @@ if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET['event_id'])) {
 <div id="eventRegistrationModal" class="event-registration-modal">
     <div class="event-registration-modal-content">
         <span class="event-registration-close-button">&times;</span>
-        <div class="event-form-container">
-            <h2 class="registration-information">Registration Information</h2>
-            <div class="event-direction-slots">
-                <p class="direction">Fill in the form below to register for the event.</p>
-                <p class="slots-available">Number of slots available: <?php echo $availableSlots; ?></p>
-            </div>
-
-            <?php if (!$isAlreadyRegistered): ?>
-                <form id="event-registration-form" method="post">
-                    <input type="hidden" name="event_id" value="<?php echo isset($_SESSION['event_id']) ? htmlspecialchars($_SESSION['event_id']) : ''; ?>">
-                    <div class="form-field">
-                        <input type="text" name="name" placeholder="Name" value="<?php echo isset($userName) ? htmlspecialchars($userName) : ''; ?>" required>
-                    </div>
-                    <div class="form-field">
-                        <input type="email" name="email" placeholder="Email" value="<?php echo isset($userEmail) ? htmlspecialchars($userEmail) : ''; ?>" required>
-                    </div>
-                    <div class="form-field">
-                        <input type="tel" name="phone" placeholder="Phone Number" value="<?php echo isset($userPhone) ? htmlspecialchars($userPhone) : ''; ?>" required>
-                    </div>
-                    <div class="form-submit">
-                        <button type="submit" class="btn btn-primary" <?php echo ($availableSlots <= 0) ? 'disabled' : ''; ?>>REGISTER</button>
-                    </div>
-                    <div class="deadline-wrapper">
-                        <p class="deadline">Registration Deadline: <?php echo $deadline; ?></p>
-                    </div>
-                </form>
-            <?php else: ?>
-                <div class="already-registered">
-                    <p>You are already registered for this event.</p>
-                </div>
-            <?php endif; ?>
+        <div id="modal-content" class="event-form-container">
+            <!-- Content will be loaded here via AJAX -->
         </div>
     </div>
 </div>
@@ -172,45 +165,99 @@ if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET['event_id'])) {
         const closeModalButton = document.querySelector('.event-registration-close-button');
         const registerButtons = document.querySelectorAll('.open-registration-modal');
 
+        // Function to handle cancel registration
+        function setupCancelButton() {
+            const cancelButton = document.getElementById('cancel-registration-button');
+            if (cancelButton) {
+                cancelButton.addEventListener('click', function() {
+                    if (confirm('Are you sure you want to cancel your registration?')) {
+                        const eventId = this.getAttribute('data-event-id');
+                        
+                        const formData = new FormData();
+                        formData.append('action', 'cancel_registration');
+                        formData.append('event_id', eventId);
+                        
+                        fetch('EventRegistration.php', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            // Show the pop-up message
+                            showPopup(data.message, data.success);
+                            
+                            if (data.success) {
+                                // Reload the modal content to show registration form again
+                                setTimeout(() => {
+                                    loadModalContent(eventId);
+                                }, 1000);
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Cancellation error:', err);
+                            showPopup('An error occurred during cancellation', false);
+                        });
+                    }
+                });
+            }
+        }
+        
+        // Function to handle form submission
+        function setupRegistrationForm() {
+            const form = document.getElementById('event-registration-form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const formData = new FormData(form);
+                    const eventId = formData.get('event_id');
+                    
+                    fetch('EventRegistration.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        // Show the pop-up message
+                        showPopup(data.message, data.success);
+                        
+                        if (data.success) {
+                            // Reload the modal content to show cancel button
+                            setTimeout(() => {
+                                loadModalContent(eventId);
+                            }, 1000);
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Registration error:', err);
+                        showPopup('An error occurred during registration', false);
+                    });
+                });
+            }
+        }
+        
+        // Function to load modal content
+        function loadModalContent(eventId) {
+            fetch(`EventRegistration.php?event_id=${eventId}`)
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('modal-content').innerHTML = data;
+                    
+                    // Setup event handlers for the new content
+                    setupCancelButton();
+                    setupRegistrationForm();
+                })
+                .catch(error => {
+                    console.error('Error loading modal content:', error);
+                    showPopup('Error loading registration form', false);
+                });
+        }
+
         // Open modal and load content
         registerButtons.forEach(button => {
             button.addEventListener('click', function() {
                 const eventId = this.getAttribute('data-event-id');
-
-                fetch(`EventRegistration.php?event_id=${eventId}`)
-                    .then(response => response.text())
-                    .then(data => {
-                        document.getElementById('modal-content').innerHTML = data;
-                        modal.style.display = 'flex';
-
-                        // Attach submit listener after content is loaded
-                        const form = document.getElementById('event-registration-form');
-                        if (form) {
-                            form.addEventListener('submit', function(e) {
-                                e.preventDefault();
-                                const formData = new FormData(form);
-
-                                fetch('EventRegistration.php', {
-                                        method: 'POST',
-                                        body: formData
-                                    })
-                                    .then(res => res.json())
-                                    .then(data => {
-                                        // Show the pop-up message
-                                        showPopup(data.message, data.success);
-
-                                        if (data.success) {
-                                            form.reset();
-                                            modal.style.display = 'none'; // Close the modal on success
-                                        }
-                                    })
-                                    .catch(err => {
-                                        console.error('Registration error:', err);
-                                    });
-                            });
-                        }
-                    })
-                    .catch(error => console.error('Error loading modal content:', error));
+                modal.style.display = 'flex';
+                loadModalContent(eventId);
             });
         });
 
@@ -227,3 +274,4 @@ if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET['event_id'])) {
         });
     });
 </script>
+
