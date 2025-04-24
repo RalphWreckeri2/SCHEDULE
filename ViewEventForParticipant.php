@@ -1,24 +1,36 @@
 <?php
-require_once 'DbConnection.php';
-require_once 'CRUD.php';
+include 'DbConnection.php';
+include 'CRUD.php';
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
+$referrer = isset($_GET['source']) ? $_GET['source'] : null;
 $UserManager = new UserManager($conn);
+session_start();
 
+$event = null;
+$error_message = null;
+
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header("Location: Login.php");
+    exit;
+}
+
+$user_id = $_SESSION['user_id'];
+
+// Get the specific event ID from URL parameter
 if (isset($_GET['event_id'])) {
-    $_SESSION['event_id'] = $_GET['event_id'];
-}
+    $event_id = $_GET['event_id'];
+    $_SESSION['event_id'] = $event_id; // Store in session if needed
 
-if (isset($_SESSION['user_id'])) {
-    $user_id = $_SESSION['user_id'];
-    $event_category = isset($_POST['filter']) ? $_POST['filter'] : 'all'; // Default to 'all' if not set
-    $events = [];
-    $events = $UserManager->EventFetcher($user_id, $event_category);
-}
+    // Get the specific event details
+    $event = $UserManager->GetEventById($event_id);
 
+    if (!$event) {
+        $error_message = "Event not found.";
+    }
+} else {
+    $error_message = "No event specified.";
+}
 ?>
 
 <!DOCTYPE html>
@@ -27,19 +39,11 @@ if (isset($_SESSION['user_id'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Schedule Events</title>
+    <title>Event Details - Schedule Events</title>
     <link rel="stylesheet" href="styles1.css">
 </head>
 
 <body>
-
-    <!-- Modal -->
-    <div id="success-modal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <p id="success-message"></p>
-        </div>
-    </div>
 
     <!-- Modal Container -->
     <div id="eventRegistrationModal" class="event-registration-modal" style="display: none;">
@@ -87,114 +91,58 @@ if (isset($_SESSION['user_id'])) {
             </a>
         </div>
 
-
     </div>
 
     <!-- Main Content Area -->
-    <div class="main-content">
-        <div class="information-in-main-content">
-
-            <div class="header">
-                <h1>Available Events</h1>
-                <p>Discover upcoming events, seminars, and workshops. Browse the full list and join the ones that interests you!.</p>
-            </div>
-
-            <div class="separator-line"></div>
-
-            <h2>Event Categories</h2>
-            <p class="description">
-                Personalize what you see! Choose what is best suited for your taste.
-            </p>
-
-            <div class="search-bar">
-                <input type="text" placeholder="Search events..." class="search-input">
-                <button class="search-button">Search</button>
-            </div>
-
-            <form method="post" action="">
-                <div class="filter-container">
-                    <select id="filter" name="filter" class="filter-select" onchange="this.form.submit()">
-                        <option value="all" <?php echo ($event_category === "all") ? "selected" : ""; ?>>All</option>
-                        <option value="Business & Finance" <?php echo ($event_category === "Business & Finance") ? "selected" : ""; ?>>Business & Finance</option>
-                        <option value="Technology & Innovation" <?php echo ($event_category === "Technology & Innovation") ? "selected" : ""; ?>>Technology & Innovation</option>
-                        <option value="Health & Wellness" <?php echo ($event_category === "Health & Wellness") ? "selected" : ""; ?>>Health & Wellness</option>
-                        <option value="Personal & Professional Development" <?php echo ($event_category === "Personal & Professional Development") ? "selected" : ""; ?>>Personal & Professional Development</option>
-                    </select>
+    <div class="view-event-main-content">
+        <div class="view-event-in-main-content">
+            <?php if ($error_message): ?>
+                <div class="error-message">
+                    <h2>Error</h2>
+                    <p><?php echo htmlspecialchars($error_message); ?></p>
+                    <a href="AvailableEvent.php" class="back-button">Back to Available Events</a>
                 </div>
-            </form>
-
-
-            <h2>Choose Your Bet!</h2>
-            <p class="description">
-                Click on “Register Now” for more details.
-            </p>
-
-            <?php if (empty($events)) : ?>
-                <div class="no-events-wrapper">
-                    <p class="no-events-message">Sorry Scheduler, there are no available events at this point in time.</p>
+            <?php elseif ($event): ?>
+                <div class="header">
+                    <h1>Event Details</h1>
+                    <div class="separator"></div>
                 </div>
-            <?php else : ?>
-                <div class="event-panel-container">
-                    <?php foreach ($events as $event) : ?>
-                        <div class="event-panel">
-                            <img src="<?php echo htmlspecialchars($event['event_photo']) ?>" alt="Event Photo" class="event-image">
-                            <h3><?php echo htmlspecialchars($event['event_name']) ?></h3>
-                            <p class="event-category"><strong>Category: </strong><?php echo htmlspecialchars($event['event_category']) ?></p>
-                            <p class="event-slots"><strong>Slots: </strong><?php echo htmlspecialchars($event['event_slots']) ?></p>
-                            <p class="event-description"><?php echo htmlspecialchars($event['event_description']) ?></p>
-                            <div class="button-wrapper">
-                                <button onclick="window.location.href='ViewEventForParticipant.php?event_id=<?php echo htmlspecialchars($event['event_id']); ?>&source=available-events'" class="view-button">View Event</button>
-                                <button class="register-button open-registration-modal" data-event-id="<?php echo htmlspecialchars($event['event_id']); ?>">Register Now</button>
-                            </div>
+
+                <div class="event-wrapper">
+                    <div class="event-top-section">
+
+                        <!-- LEFT: Event Photo -->
+                        <div class="event-photo-container">
+                            <img src="<?php echo !empty($event['event_photo']) ? htmlspecialchars($event['event_photo']) : 'photos/event-default.jpg'; ?>" alt="Event Photo" class="event-photo">
                         </div>
+
+                        <!-- RIGHT: Event Details -->
+                        <div class="event-details-container">
+                            <h2><?php echo htmlspecialchars($event['event_name']); ?></h2>
+                            <p><strong>Category: </strong><?php echo htmlspecialchars($event['event_category']); ?></p>
+                            <p><strong>Slots: </strong><?php echo htmlspecialchars($event['event_slots']); ?></p>
+                            <p><strong>Status: </strong><?php echo htmlspecialchars($event['event_status']); ?></p>
+                            <p><strong>Description: </strong><?php echo nl2br(htmlspecialchars($event['event_description'])); ?></p>
+                            <p><strong>Date: </strong><?php echo htmlspecialchars(date('F j, Y', strtotime($event['event_date']))); ?></p>
+                            <p><strong>Time: </strong><?php echo htmlspecialchars(date('g:i A', strtotime($event['event_starting_time']))); ?> - <?php echo htmlspecialchars(date('g:i A', strtotime($event['event_end_time']))); ?></p>
+                            <p><strong>Location: </strong><?php echo htmlspecialchars($event['event_location']); ?></p>
+                            <?php if (!empty($event['event_speaker'])): ?>
+                                <p><strong>Speaker: </strong><?php echo htmlspecialchars($event['event_speaker']); ?></p>
+                                <?php if (!empty($event['speaker_description'])): ?>
+                                    <p><strong>Speaker Bio: </strong><?php echo nl2br(htmlspecialchars($event['speaker_description'])); ?></p>
+                                <?php endif; ?>
+                            <?php endif; ?>
+                        </div>
+
+                    </div>
                 </div>
-            <?php endforeach; ?>
+
+                <!-- BOTTOM: Buttons -->
+                <div class="button-wrapper">
+                    <button class="register-button open-registration-modal" data-event-id="<?php echo htmlspecialchars($event['event_id']); ?>">Register Now</button>
+                </div>
+            <?php endif; ?>
         </div>
-    <?php endif; ?>
-
-    <div class="separator-line"></div>
-
-    <h2>Contact Us</h2>
-    <p class="description">
-        Have questions or need assistance? We're here to help! Feel free to reach out to us for any inquiries about event registrations, technical support, or general concerns.
-    </p>
-
-    <div class="contact-info">
-        <div class="contact-item">
-            <img src="photos/address-icon.png" alt="Address" class="contact-icon">
-            <div class="contact-text">
-                <strong>Address:</strong> 1234 Rizal Street, Makati City, Metro Manila, Philippines
-            </div>
-        </div>
-
-        <div class="contact-item">
-            <img src="photos/email-icon.png" alt="Email" class="contact-icon">
-            <div class="contact-text">
-                <strong>Email:</strong> support@scheduleevents.ph
-            </div>
-        </div>
-
-        <div class="contact-item">
-            <img src="photos/phone-icon.png" alt="Phone" class="contact-icon">
-            <div class="contact-text">
-                <strong>Phone:</strong> (+63) 912-345-6789
-            </div>
-        </div>
-
-        <div class="contact-item">
-            <img src="photos/social-icon.png" alt="Socials" class="contact-icon">
-            <div class="contact-text">
-                <strong>Socials:</strong> facebook.com/scheduleeventsph | twitter.com/scheduleeventsph
-            </div>
-        </div>
-    </div>
-
-    <p class="social-text">
-        You can also follow us on our social media channels for updates and announcements!
-    </p>
-
-    <p class="copyright">All Rights Reserved. 2025</p>
-    </div>
     </div>
 
     <script>
@@ -210,25 +158,18 @@ if (isset($_SESSION['user_id'])) {
                 item.classList.remove('active');
             });
 
-            // Find which nav item matches the current page and set it as active
-            navItems.forEach(function(item) {
-                // Get the href attribute
-                const href = item.getAttribute('href');
+            const urlParams = new URLSearchParams(window.location.search);
+            const source = urlParams.get('source');
 
-                // Extract just the filename from the href
-                const hrefPage = href.split('/').pop();
-
-                // Extract just the filename from the current URL
-                const currentPageName = currentPage.split('/').pop();
-
-                // Check if this nav item corresponds to the current page
-                if (currentPageName === hrefPage ||
-                    (currentPageName === 'Dashboard.php' && item.id === 'dashboard') ||
-                    (currentPageName === '' && item.id === 'dashboard')) {
-                    item.classList.add('active');
-                    console.log('Set active:', item.id);
-                }
-            });
+            // Add the 'active' class to the correct nav item based on the source
+            if (source === 'dashboard') {
+                document.getElementById('dashboard').classList.add('active');
+            } else if (source === 'available-events') {
+                document.getElementById('available-events').classList.add('active');
+            } else {
+                // Handle other sources or default behavior
+                document.getElementById('my-events').classList.add('active');
+            }
 
             // Function to show a pop-up message
             function showPopup(message, isSuccess) {
@@ -320,8 +261,15 @@ if (isset($_SESSION['user_id'])) {
 
             // Function to load modal content
             function loadModalContent(eventId) {
+                console.log('Loading modal content for event ID:', eventId);
+
                 fetch(`EventRegistration.php?event_id=${eventId}`)
-                    .then(response => response.text())
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+                        return response.text();
+                    })
                     .then(data => {
                         document.getElementById('modal-content').innerHTML = data;
 
@@ -331,23 +279,39 @@ if (isset($_SESSION['user_id'])) {
                     })
                     .catch(error => {
                         console.error('Error loading modal content:', error);
-                        showPopup('Error loading registration form', false);
+                        document.getElementById('modal-content').innerHTML = `
+                            <div class="error-message">
+                                <h3>Error Loading Registration Form</h3>
+                                <p>There was a problem loading the registration form. Please try again later.</p>
+                                <p>Technical details: ${error.message}</p>
+                            </div>
+                        `;
                     });
             }
 
             // Open modal and load content
-            registerButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const eventId = this.getAttribute('data-event-id');
-                    modal.style.display = 'flex';
-                    loadModalContent(eventId);
+            if (registerButtons.length > 0) {
+                registerButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        const eventId = this.getAttribute('data-event-id');
+                        if (!eventId) {
+                            console.error('No event ID found on button');
+                            showPopup('Error: No event ID found', false);
+                            return;
+                        }
+
+                        modal.style.display = 'flex';
+                        loadModalContent(eventId);
+                    });
                 });
-            });
+            }
 
             // Close modal
-            closeModalButton.addEventListener('click', function() {
-                modal.style.display = 'none';
-            });
+            if (closeModalButton) {
+                closeModalButton.addEventListener('click', function() {
+                    modal.style.display = 'none';
+                });
+            }
 
             // Close modal when clicking outside the modal content
             window.addEventListener('click', function(event) {

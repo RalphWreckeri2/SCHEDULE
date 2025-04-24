@@ -122,6 +122,7 @@ if (isset($_SESSION['user_id'])) {
                             <p class="event-slots"><strong>Slots: </strong><?php echo htmlspecialchars($event['event_slots']) ?></p>
                             <p class="event-description"><?php echo htmlspecialchars($event['event_description']) ?></p>
                             <div class="button-wrapper">
+                                <button onclick="window.location.href='ViewEventForParticipant.php?event_id=<?php echo htmlspecialchars($event['event_id']); ?>&source=dashboard'" class="view-button">View Event</button>
                                 <button class="register-button open-registration-modal" data-event-id="<?php echo htmlspecialchars($event['event_id']); ?>">Register Now</button>
                             </div>
                         </div>
@@ -321,16 +322,16 @@ if (isset($_SESSION['user_id'])) {
                         // Add event listener for form submission
                         const form = document.querySelector('#event-registration-form');
                         if (form) {
-                            form.addEventListener('submit', function (e) {
+                            form.addEventListener('submit', function(e) {
                                 e.preventDefault(); // Prevent default form submission
 
                                 const formData = new FormData(form);
 
                                 // Submit form via AJAX
                                 fetch('EventRegistration.php', {
-                                    method: 'POST',
-                                    body: formData
-                                })
+                                        method: 'POST',
+                                        body: formData
+                                    })
                                     .then(response => response.json())
                                     .then(data => {
                                         // Show success or error message in a modal
@@ -351,9 +352,9 @@ if (isset($_SESSION['user_id'])) {
 
         // Close modal when clicking outside the modal content
         window.addEventListener('click', function(event) {
-        if (event.target === modal) {
-            modal.style.display = 'none';
-        }
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
         });
 
         //for modal(popup) after a successful sign in

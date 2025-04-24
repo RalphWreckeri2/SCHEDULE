@@ -333,9 +333,9 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
 
             addSpeakerBtn.addEventListener('click', function() {
                 speakerCount++;
+
                 const newSpeaker = document.createElement('div');
                 newSpeaker.classList.add('additional-speaker', 'form-row-field2');
-
                 newSpeaker.innerHTML = `
                     <div class="form-field">
                         <label for="additional-speaker-${speakerCount}">Additional Speaker:</label>
@@ -345,10 +345,20 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                         <label for="additional-description-${speakerCount}">Description:</label>
                         <input type="text" name="additional-description[]" id="additional-description-${speakerCount}" placeholder="Speaker Description" required>
                     </div>
+                    <div class="form-field">
+                        <button type="button" class="remove-speaker-button">Remove</button>
+                    </div>
                 `;
 
                 additionalSpeakersDiv.appendChild(newSpeaker);
+
+                // Attach the event listener to the remove button inside this speaker group
+                const removeButton = newSpeaker.querySelector('.remove-speaker-button');
+                removeButton.addEventListener('click', function() {
+                    newSpeaker.remove(); // Remove the entire speaker group
+                });
             });
+
 
             // Add click event listener for the cancel button
             const cancelButton = document.querySelector('.cancel-button');

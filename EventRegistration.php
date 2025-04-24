@@ -27,6 +27,13 @@ if (isset($_SESSION['event_id'])) {
         $takenSlots = $eventDetails['taken_slots'];
         $eventDate = $eventDetails['event_date'];
 
+        $isEventOver = false;
+        $currentDate = date('Y-m-d');
+
+        if ($eventDate < $currentDate) {
+            $isEventOver = true;
+        }
+
         $availableSlots = $totalSlots - $takenSlots;
         $deadline = date('F j, Y', strtotime($eventDate . ' -1 day'));
     }
@@ -104,7 +111,9 @@ if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET['event_id'])) {
         <p class="slots-available">Number of slots available: <?php echo $availableSlots; ?></p>
     </div>
 
-    <?php if (!$isAlreadyRegistered): ?>
+    <?php if ($isEventOver): ?>
+        <p class="event-ended-msg">This event has already ended. Registration is closed.</p>
+    <?php elseif (!$isAlreadyRegistered): ?>
         <form id="event-registration-form" method="post">
             <input type="hidden" name="event_id" value="<?php echo isset($_SESSION['event_id']) ? htmlspecialchars($_SESSION['event_id']) : ''; ?>">
             <div class="form-field">
@@ -127,10 +136,22 @@ if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET['event_id'])) {
         <div class="already-registered">
             <p>You are already registered for this event.</p>
             <div class="form-submit">
-                <button type="button" class="btn btn-danger" id="cancel-registration-button" data-event-id="<?php echo htmlspecialchars($_SESSION['event_id']); ?>">CANCEL REGISTRATION</button>
+                <button
+                    type="button"
+                    class="btn btn-danger"
+                    id="cancel-registration-button"
+                    data-event-id="<?= htmlspecialchars($_SESSION['event_id']) ?>"
+                    <?= $isEventOver ? 'disabled title="Event has ended. You cannot cancel your registration."' : '' ?>>
+                    CANCEL REGISTRATION
+                </button>
             </div>
+            <?php if ($isEventOver): ?>
+                <p class="event-ended-msg">This event has ended. Cancellation is no longer allowed.</p>
+            <?php endif; ?>
         </div>
     <?php endif; ?>
+
+
 <?php
     exit;
 }
@@ -172,36 +193,36 @@ if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET['event_id'])) {
                 cancelButton.addEventListener('click', function() {
                     if (confirm('Are you sure you want to cancel your registration?')) {
                         const eventId = this.getAttribute('data-event-id');
-                        
+
                         const formData = new FormData();
                         formData.append('action', 'cancel_registration');
                         formData.append('event_id', eventId);
-                        
+
                         fetch('EventRegistration.php', {
-                            method: 'POST',
-                            body: formData
-                        })
-                        .then(res => res.json())
-                        .then(data => {
-                            // Show the pop-up message
-                            showPopup(data.message, data.success);
-                            
-                            if (data.success) {
-                                // Reload the modal content to show registration form again
-                                setTimeout(() => {
-                                    loadModalContent(eventId);
-                                }, 1000);
-                            }
-                        })
-                        .catch(err => {
-                            console.error('Cancellation error:', err);
-                            showPopup('An error occurred during cancellation', false);
-                        });
+                                method: 'POST',
+                                body: formData
+                            })
+                            .then(res => res.json())
+                            .then(data => {
+                                // Show the pop-up message
+                                showPopup(data.message, data.success);
+
+                                if (data.success) {
+                                    // Reload the modal content to show registration form again
+                                    setTimeout(() => {
+                                        loadModalContent(eventId);
+                                    }, 1000);
+                                }
+                            })
+                            .catch(err => {
+                                console.error('Cancellation error:', err);
+                                showPopup('An error occurred during cancellation', false);
+                            });
                     }
                 });
             }
         }
-        
+
         // Function to handle form submission
         function setupRegistrationForm() {
             const form = document.getElementById('event-registration-form');
@@ -210,38 +231,38 @@ if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET['event_id'])) {
                     e.preventDefault();
                     const formData = new FormData(form);
                     const eventId = formData.get('event_id');
-                    
+
                     fetch('EventRegistration.php', {
-                        method: 'POST',
-                        body: formData
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        // Show the pop-up message
-                        showPopup(data.message, data.success);
-                        
-                        if (data.success) {
-                            // Reload the modal content to show cancel button
-                            setTimeout(() => {
-                                loadModalContent(eventId);
-                            }, 1000);
-                        }
-                    })
-                    .catch(err => {
-                        console.error('Registration error:', err);
-                        showPopup('An error occurred during registration', false);
-                    });
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            // Show the pop-up message
+                            showPopup(data.message, data.success);
+
+                            if (data.success) {
+                                // Reload the modal content to show cancel button
+                                setTimeout(() => {
+                                    loadModalContent(eventId);
+                                }, 1000);
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Registration error:', err);
+                            showPopup('An error occurred during registration', false);
+                        });
                 });
             }
         }
-        
+
         // Function to load modal content
         function loadModalContent(eventId) {
             fetch(`EventRegistration.php?event_id=${eventId}`)
                 .then(response => response.text())
                 .then(data => {
                     document.getElementById('modal-content').innerHTML = data;
-                    
+
                     // Setup event handlers for the new content
                     setupCancelButton();
                     setupRegistrationForm();
@@ -274,4 +295,3 @@ if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET['event_id'])) {
         });
     });
 </script>
-

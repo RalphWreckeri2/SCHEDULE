@@ -8,6 +8,10 @@ session_start();
 if (isset($_SESSION['user_id'])) {
     $user_id = $_SESSION['user_id'];
     $events = $UserManager->GetEvents($user_id); // Fetch events created by the user
+
+       // Get events joined by the user, grouped by status
+       $upcomingEvents = $UserManager->GetUserEventsByStatus($user_id, 'upcoming');
+       $pastEvents = $UserManager->GetUserEventsByStatus($user_id, 'past');
 }
 ?>
 
@@ -80,24 +84,19 @@ if (isset($_SESSION['user_id'])) {
             </p>
 
             <div class="search-bar">
-                <input type="text" placeholder="Search events..." class="search-input">
-                <button class="search-button">Search</button>
+                <input type="text" id="searchInput" placeholder="Search an event name..." class="search-input">
+                <button class="search-button" onclick="applySearch()">Search</button>
             </div>
 
             <div class="filter-container">
-                <select id="filter" class="filter-select" onchange="applyFilter(this.value)">
+                <select id="filter" class="filter-select" onchange="applyFilter()">
                     <option value="all">All</option>
                     <option value="upcoming">Upcoming</option>
                     <option value="current">Current</option>
                     <option value="past">Past</option>
                 </select>
-                <script>
-                    function applyFilter(filterValue) {
-                        console.log('Filter applied:', filterValue);
-                        // Add your logic here to handle the filter change
-                    }
-                </script>
             </div>
+
 
             <?php if (empty($events)) : ?>
                 <div class="no-events-wrapper">
@@ -106,17 +105,22 @@ if (isset($_SESSION['user_id'])) {
             <?php else : ?>
                 <div class="event-panel-container">
                     <?php foreach ($events as $event) : ?>
-                        <div class="event-panel">
+                        <div class="event-panel" data-status="<?php echo htmlspecialchars($event['event_status']); ?>">
                             <img src="<?php echo htmlspecialchars($event['event_photo']); ?>" alt="Event Image" class="event-image">
-                            <h3><?php echo htmlspecialchars($event['event_name']); ?></h3>
+                            <h3 class="event-name"><?php echo htmlspecialchars($event['event_name']); ?></h3>
                             <p class="event-category"><strong>Category: </strong><?php echo htmlspecialchars($event['event_category']); ?></p>
                             <p class="event-slots"><strong>Slots: </strong><?php echo htmlspecialchars($event['event_slots']); ?></p>
                             <p class="event-description"><?php echo htmlspecialchars($event['event_description']); ?></p>
                             <div class="button-wrapper">
-                                <button class="view-button">View</button>
+                                <button onclick="window.location.href='ViewEvent.php?event_id=<?php echo htmlspecialchars($event['event_id']); ?>'" class="view-button">
+                                    View Event
+                                </button>
                             </div>
                         </div>
                     <?php endforeach; ?>
+                    <div id="noFilteredEventsMessage" class="no-events-wrapper" style="display: none;">
+                        <p class="no-events-message">No events match the selected filter.</p>
+                    </div>
                 </div>
             <?php endif; ?>
 
@@ -132,20 +136,46 @@ if (isset($_SESSION['user_id'])) {
 
             <h3 class="description-heading">Your Upcoming Events</h3>
             <p class="description">Explore new learning opportunities and gain valuable skills!</p>
+
             <div class="upcoming-events-container">
                 <div class="upcoming-events-labels">
-                    <p class="label">Event Title</p>
-                    <p class="label">Date</p>
+                    <div class="label">Event Name</div>
+                    <div class="label">Event Date</div>
+                    <div class="label">Actions</div>
                 </div>
+                <?php if (!empty($upcomingEvents)) : ?>
+                    <?php foreach ($upcomingEvents as $event): ?>
+                        <div class="event-row-grid">
+                            <div><?php echo htmlspecialchars($event['event_name']); ?></div>
+                            <div><?php echo htmlspecialchars($event['event_date']); ?></div>
+                            <button onclick="window.location.href='ViewEventForParticipant.php?event_id=<?php echo htmlspecialchars($event['event_id']); ?>'" class="view-button-me">View</button>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <p class="no-events-message">You have no upcoming events yet, Scheduler!.</p>
+                <?php endif; ?>
             </div>
 
             <h3 class="description-heading">Your Past Events</h3>
             <p class="description">Rekindle the details of your past events!</p>
+
             <div class="past-events-container">
                 <div class="past-events-labels">
-                    <p class="label">Event Title</p>
-                    <p class="label">Date</p>
+                    <div class="label">Event Name</div>
+                    <div class="label">Event Date</div>
+                    <div class="label">Actions</div>
                 </div>
+                <?php if (!empty($pastEvents)) : ?>
+                    <?php foreach ($pastEvents as $event): ?>
+                        <div class="event-row-grid">
+                            <div><?php echo htmlspecialchars($event['event_name']); ?></div>
+                            <div><?php echo htmlspecialchars($event['event_date']); ?></div>
+                            <button onclick="window.location.href='ViewEventForParticipant.php?event_id=<?php echo htmlspecialchars($event['event_id']); ?>'" class="view-button-me">View</button>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <p class="no-events-message">You have no past events yet, Scheduler!.</p>
+                <?php endif; ?>
             </div>
 
             <div class="separator-line"></div>
@@ -217,7 +247,7 @@ if (isset($_SESSION['user_id'])) {
                 // Extract just the filename from the current URL
                 const currentPageName = currentPage.split('/').pop();
 
-                // Check if this nav item corresponds to the current page
+                // Check if this nav item corresponds to the current page and set it as active
                 if (currentPageName === hrefPage ||
                     (currentPageName === 'Dashboard.php' && item.id === 'dashboard') ||
                     (currentPageName === '' && item.id === 'dashboard')) {
@@ -226,15 +256,58 @@ if (isset($_SESSION['user_id'])) {
                 }
             });
 
-            // Add click event listeners for navigation within the same page
-            navItems.forEach(function(item) {
-                item.addEventListener('click', function() {
-                    // We don't need to do anything here since the page will reload
-                    // and the above code will set the correct active state
+            // Function to filter events based on the status selected
+            function applyFilter() {
+                const filterValue = document.getElementById('filter').value;
+                const eventPanels = document.querySelectorAll('.event-panel');
+                const noFilteredMessage = document.getElementById('noFilteredEventsMessage');
+
+                let visibleCount = 0;
+
+                eventPanels.forEach(function(event) {
+                    const eventStatus = event.getAttribute('data-status');
+
+                    if (filterValue === 'all' || eventStatus === filterValue) {
+                        event.style.display = 'block';
+                        visibleCount++;
+                    } else {
+                        event.style.display = 'none';
+                    }
                 });
-            });
+
+                // Show the "no events" message if none are visible
+                if (visibleCount === 0) {
+                    noFilteredMessage.style.display = 'block';
+                } else {
+                    noFilteredMessage.style.display = 'none';
+                }
+            }
+
+
+            // Function to search events based on user input
+            function applySearch() {
+                const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+                const eventPanels = document.querySelectorAll('.event-panel');
+
+                eventPanels.forEach(panel => {
+                    const eventName = panel.querySelector('.event-name').textContent.toLowerCase();
+                    if (eventName.includes(searchQuery)) {
+                        panel.style.display = 'block';
+                    } else {
+                        panel.style.display = 'none';
+                    }
+                });
+            }
+
+            // Add event listeners to trigger search and filter automatically
+            document.getElementById('searchInput').addEventListener('keyup', applySearch);
+            document.getElementById('filter').addEventListener('change', applyFilter);
+
+            // Run the filter on page load in case a filter was selected
+            applyFilter();
         });
     </script>
+
 
 </body>
 

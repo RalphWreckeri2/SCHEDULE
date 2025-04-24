@@ -258,7 +258,8 @@ class UserManager
         }
     }
 
-    public function GetUserDetails($user_id) {
+    public function GetUserDetails($user_id)
+    {
         $stmt = $this->conn->prepare("SELECT name, email, phone FROM users WHERE id = ?");
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
@@ -311,7 +312,7 @@ class UserManager
         }
     }
 
-    public function CancelRegistration($user_id, $event_id) 
+    public function CancelRegistration($user_id, $event_id)
     {
         // Prepare the DELETE query
         $stmt = $this->conn->prepare("DELETE FROM eventregistration WHERE user_id = ? AND event_id = ?");
@@ -342,9 +343,195 @@ class UserManager
         }
     }
 
-    public function UpdateProfile($user_id, $user_profile) {
+    public function UpdateProfile($user_id, $user_profile)
+    {
         $stmt = $this->conn->prepare("CALL UpdateProfile(?, ?)");
         $stmt->bind_param("is", $user_id, $user_profile);
         $stmt->execute();
+    }
+
+    public function UpdateEvent(
+        $event_id,
+        $user_id = null,
+        $event_photo = null,
+        $event_name = null,
+        $event_category = null,
+        $event_slots = null,
+        $event_status = null,
+        $event_description = null,
+        $event_date = null,
+        $event_starting_time = null,
+        $event_end_time = null,
+        $event_location = null,
+        $event_speaker = null,
+        $speaker_description = null
+    ) {
+
+        $stmt = $this->conn->prepare("CALL UpdateEvent(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+        $stmt->bind_param(
+            "iisssissssssss",
+            $event_id,
+            $user_id,
+            $event_photo,
+            $event_name,
+            $event_category,
+            $event_slots,
+            $event_status,
+            $event_description,
+            $event_date,
+            $event_starting_time,
+            $event_end_time,
+            $event_location,
+            $event_speaker,
+            $speaker_description
+        );
+
+        $stmt->execute();
+
+        $message = null;
+        $success = false;
+
+        $stmt->store_result();
+        $stmt->bind_result($message, $success);
+
+        $response = ['message' => null, 'success' => false];
+        if ($stmt->fetch()) {
+            $response = ['message' => $message, 'success' => $success];
+        }
+
+        $stmt->close();
+
+        return $response;
+    }
+
+    // Get complete event details by ID
+    public function GetEventById($event_id)
+    {
+        $stmt = $this->conn->prepare("SELECT e.*, 
+        (SELECT COUNT(*) FROM eventregistration er WHERE er.event_id = e.event_id) AS taken_slots 
+        FROM events e WHERE e.event_id = ?");
+        $stmt->bind_param("i", $event_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
+            return $result->fetch_assoc();
+        } else {
+            return null;
+        }
+    }
+
+    // Check if a user is registered for an event
+    public function IsUserRegistered($user_id, $event_id)
+    {
+        $stmt = $this->conn->prepare("SELECT * FROM eventregistration WHERE user_id = ? AND event_id = ?");
+        $stmt->bind_param("ii", $user_id, $event_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return $result->num_rows > 0;
+    }
+
+    // Get the number of registered users for an event
+    public function GetRegisteredCount($event_id)
+    {
+        $stmt = $this->conn->prepare("SELECT COUNT(*) as count FROM eventregistration WHERE event_id = ?");
+        $stmt->bind_param("i", $event_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        return $row['count'];
+    }
+    public function GetEventParticipants($event_id)
+    {
+        error_log("Getting participants for event ID: " . $event_id);
+
+        $stmt = $this->conn->prepare("CALL GetEventParticipants(?)");
+        if (!$stmt) {
+            error_log("Prepare failed: " . $this->conn->error);
+            return [];
+        }
+
+        $stmt->bind_param("i", $event_id);
+        if (!$stmt->execute()) {
+            error_log("Execute failed: " . $stmt->error);
+            return [];
+        }
+
+        $result = $stmt->get_result();
+        if ($result && $result->num_rows > 0) {
+            $participants = $result->fetch_all(MYSQLI_ASSOC);
+            error_log("Found " . count($participants) . " participants");
+            return $participants;
+        } else {
+            error_log("No participants found or get_result failed.");
+            return [];
+        }
+    }
+
+    // Delete an event
+    public function DeleteEvent($event_id)
+    {
+        // First delete all registrations for this event
+        $stmt1 = $this->conn->prepare("DELETE FROM eventregistration WHERE event_id = ?");
+        $stmt1->bind_param("i", $event_id);
+        $stmt1->execute();
+
+        // Then delete the event
+        $stmt2 = $this->conn->prepare("DELETE FROM events WHERE event_id = ?");
+        $stmt2->bind_param("i", $event_id);
+        return $stmt2->execute();
+    }
+
+    public function UpdateEventStatusAutomatically($event_id = null)
+    {
+        // If no specific event_id is provided, update all events
+        if ($event_id === null) {
+            $query = "UPDATE events 
+                 SET event_status = 
+                    CASE 
+                        WHEN event_date > CURDATE() THEN 'upcoming'
+                        WHEN event_date < CURDATE() THEN 'past'
+                        WHEN event_date = CURDATE() AND event_end_time < CURTIME() THEN 'past'
+                        WHEN event_date = CURDATE() THEN 'ongoing'
+                    END";
+            return $this->conn->query($query);
+        } else {
+            // Update specific event
+            $stmt = $this->conn->prepare("
+            UPDATE events 
+            SET event_status = 
+                CASE 
+                    WHEN event_date > CURDATE() THEN 'upcoming'
+                    WHEN event_date < CURDATE() THEN 'past'
+                    WHEN event_date = CURDATE() AND event_end_time < CURTIME() THEN 'past'
+                    WHEN event_date = CURDATE() THEN 'ongoing'
+                END
+            WHERE event_id = ?
+        ");
+            $stmt->bind_param("i", $event_id);
+            return $stmt->execute();
+        }
+    }
+
+    public function GetUserEventsByStatus($user_id, $status)
+    {
+        $stmt = $this->conn->prepare("CALL UserEventsBySimpleStatus(?, ?)");
+        $stmt->bind_param("is", $user_id, $status);
+
+        if ($stmt->execute()) {
+            $result = $stmt->get_result();
+            $events = [];
+
+            while ($row = $result->fetch_assoc()) {
+                $events[] = $row;
+            }
+
+            $stmt->close();
+            return $events;
+        } else {
+            $stmt->close();
+            return [];
+        }
     }
 }
