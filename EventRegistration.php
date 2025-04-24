@@ -30,9 +30,11 @@ if (isset($_SESSION['event_id'])) {
         $isEventOver = false;
         $currentDate = date('Y-m-d');
 
-        if ($eventDate < $currentDate) {
+        $registrationDeadline = date('Y-m-d', strtotime($eventDate . ' -1 day'));
+        if ($currentDate > $registrationDeadline) {
             $isEventOver = true;
         }
+
 
         $availableSlots = $totalSlots - $takenSlots;
         $deadline = date('F j, Y', strtotime($eventDate . ' -1 day'));
