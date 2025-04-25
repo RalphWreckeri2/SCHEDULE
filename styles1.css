@@ -215,22 +215,33 @@ h2 {
 .event-panel {
     display: flex;
     flex-direction: column;
-    align-items: left;
+    align-items: flex-start;
     justify-content: space-between;
-    margin-bottom: 10px;
-    margin-top: 5px;
     padding: 15px;
-    background-color: rgb(255, 255, 255);
+    background-color: #fff;
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border: 1px solid #ccc; /* Greyish stroke */
+    border: 1px solid #ccc;
+    width: 100%; /* stays responsive in grid */
+    max-width: 100%; /* so it doesn’t fight grid size */
+    box-sizing: border-box; /* includes padding in width */
+}
+
+.event-description {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
 }
 
 .event-panel-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); /* Gave it more breathing space */
+    gap: 24px; /* more space between items */
+    padding: 20px;
+    box-sizing: border-box;
 }
+
 
 .no-events-wrapper {
     text-align: center;
@@ -265,9 +276,9 @@ h2 {
 
 .event-panel p {
     font-size: 16px;
-    line-height: 1.0;
+    line-height: 1.4; /* Slightly more readable spacing */
     color: #333;
-    margin: 0 0 10px 0;
+    margin: 0 0 8px 0;
 }
 
 .button-wrapper {
@@ -651,11 +662,11 @@ h3.description-heading {
 }
 
 .event-image {
-    max-width: 100%;         /* Ensure the image scales within its container */
-    height: auto;            /* Maintain aspect ratio */
-    object-fit: cover;       /* Ensure the image covers the area without distortion */
-    overflow: hidden;        /* Hide any overflow from the image */
-    margin: 0;               /* Reset any margins that could affect layout */
+    width: 100%;
+    height: 200px; /* you can adjust this! try 220px or 250px if bitin pa rin */
+    object-fit: cover;
+    object-position: center; /* makes sure face/center is visible */
+    border-radius: 8px;
 }
 
 /* Mew Event Styles */
@@ -981,6 +992,7 @@ button.submit-button:hover {
     color: #333; /* Text color */
     margin: 0 0 10px 0; /* Margin below each paragraph */
 }
+
 .view-event-button-container {
     display: flex;
     justify-content: space-between;
@@ -1057,7 +1069,19 @@ button.submit-button:hover {
     margin-left: 5px;
 }
 
-/*Participants List Styles*/
+/* Event info styling */
+.event-info {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.event-info h2 {
+    margin-top: 0;
+    color: #333;
+}
+/* Participants List Styles */
 .participants-main-content {
     margin-left: 250px;
     padding: 20px;
@@ -1073,39 +1097,34 @@ button.submit-button:hover {
     padding: 30px;
 }
 
-/* Event info styling */
-.event-info {
-    background-color: #f8f9fa;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-}
-
-.event-info h2 {
-    margin-top: 0;
-    color: #333;
-}
-
-/* Participants list styling */
+/* Participants list container */
 .participants-list-container {
     margin-top: 20px;
 }
 
+/* Participants List Labels */
 .participants-list-labels {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-columns: 1fr 1fr 1fr 100px; /* Adding fixed width for delete button */
     gap: 10px;
     background-color: #f2f2f2;
     padding: 10px;
     border-radius: 4px 4px 0 0;
     font-weight: bold;
+    text-align: left;
+    white-space: nowrap;
+    align-items: center;
 }
 
+/* Participant Item */
 .participant-item {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr 100px; /* Consistent with labels */
     padding: 10px;
     border-bottom: 1px solid #eee;
+    align-items: center; /* Vertically center text and button */
+    text-align: left;
+    white-space: nowrap;
 }
 
 .participant-item:nth-child(even) {
@@ -1115,6 +1134,28 @@ button.submit-button:hover {
 .participant-item:last-child {
     border-bottom: none;
     border-radius: 0 0 4px 4px;
+}
+
+/* Delete Button Styles */
+.delete-participant-button {
+    background-color: red;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 14px;
+    display: inline-block;
+    justify-self: flex-start; /* Align button to the left */
+    margin-left: 10px; /* Ensure there's space between button and content */
+}
+
+.delete-participant-button:hover {
+    background-color: darkred;
+}
+
+.delete-participant-button:focus {
+    outline: none; /* Optional: remove outline when button is clicked */
 }
 
 /* Messages styling */
