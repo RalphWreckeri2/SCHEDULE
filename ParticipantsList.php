@@ -198,11 +198,12 @@ if (!empty($search_query) && !empty($participants)) {
                             <?php endforeach; ?>
                         </div>
                     <?php endif; ?>
+                    <div class="export-button-container">
+                        <a href="ExportParticipants.php?event_id=<?php echo htmlspecialchars($event['event_id']); ?>" class="export-button">
+                            Export
+                        </a>
+                    </div>
                 </div>
-<<<<<<< HEAD
-=======
-
->>>>>>> recovery-branch
             <?php endif; ?>
         </div>
     </div>

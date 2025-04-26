@@ -1158,6 +1158,30 @@ button.submit-button:hover {
     outline: none; /* Optional: remove outline when button is clicked */
 }
 
+.export-button-container {
+    text-align: right;
+    margin-top: 50px;
+    margin-bottom: 50px;
+}
+
+.export-button {
+    background-color: hsl(211, 69%, 50%);
+    color: #fff;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.export-button:hover {
+    font-weight: bold;
+    transform: scale(1.05);
+    transition: transform 0.2s ease-in-out;
+}
+
 /* Messages styling */
 .no-participants {
     text-align: center;
