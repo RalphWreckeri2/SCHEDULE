@@ -19,6 +19,9 @@ if (isset($_SESSION['success_message'])) {
 if (isset($_SESSION['user_id'])) {
     $user_id = $_SESSION['user_id'];
     $events = $UserManager->EventFetcherInDb($user_id);
+
+      // Get events joined by the user, grouped by status
+      $upcomingEvents = $UserManager->GetUserEventsByStatus($user_id, 'upcoming');
 }
 
 ?>
@@ -141,13 +144,23 @@ if (isset($_SESSION['user_id'])) {
                 Explore new learning opportunities and gain valuable skills!
             </p>
 
-            <!-- EVent details -- php rin ito (including yung format ng separator line) pagkaclick ng view, puntang ViewEvent-->
             <div class="upcoming-events-container">
                 <div class="upcoming-events-labels">
-                    <p class="label">Event Title</p>
-                    <p class="label">Date</p>
+                    <div class="label">Event Name</div>
+                    <div class="label">Event Date</div>
+                    <div class="label">Actions</div>
                 </div>
-                <div class="button-wrapper"><button class="view-button" onclick="window.location.href='MyEvents.php'">View Details</button></div>
+                <?php if (!empty($upcomingEvents)) : ?>
+                    <?php foreach ($upcomingEvents as $event): ?>
+                        <div class="event-row-grid">
+                            <div><?php echo htmlspecialchars($event['event_name']); ?></div>
+                            <div><?php echo htmlspecialchars($event['event_date']); ?></div>
+                            <button onclick="window.location.href='ViewEventForParticipant.php?event_id=<?php echo htmlspecialchars($event['event_id']); ?>'" class="view-button-me">View</button>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <p class="no-events-message">You have no upcoming events yet, Scheduler!.</p>
+                <?php endif; ?>
             </div>
 
             <h2>About Us</h2>

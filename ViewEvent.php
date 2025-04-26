@@ -58,9 +58,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (isset($_POST['delete_event'])) {
         $result = $UserManager->DeleteEvent($event_id);
         if ($result) {
-            // Redirect to MyEvents.php after successful deletion
-            header("Location: MyEvents.php?deleted=true");
-            exit;
+            echo "<script>
+            alert('Event deleted successfully.');
+            window.location.href= 'MyEvents.php';
+            </script>";
         } else {
             $error_message = "Failed to delete event.";
         }

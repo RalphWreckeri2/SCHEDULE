@@ -1,4 +1,4 @@
-<?php 
+<?php
 include 'DbConnection.php';
 include 'CRUD.php';
 
@@ -21,10 +21,10 @@ $user_id = $_SESSION['user_id'];
 if (isset($_GET['event_id'])) {
     $event_id = $_GET['event_id'];
     $referrer = isset($_GET['ref']) ? $_GET['ref'] : 'my-events'; // Default referrer is my-events
-    
+
     // Get the specific event details
     $event = $UserManager->GetEventById($event_id);
-    
+
     if (!$event) {
         $error_message = "Event not found.";
     } else if ($event['user_id'] != $user_id) {
@@ -52,8 +52,10 @@ $search_query = isset($_GET['search']) ? $_GET['search'] : '';
 if (!empty($search_query) && !empty($participants)) {
     $filtered_participants = [];
     foreach ($participants as $participant) {
-        if (stripos($participant['name'], $search_query) !== false || 
-            stripos($participant['email'], $search_query) !== false) {
+        if (
+            stripos($participant['name'], $search_query) !== false ||
+            stripos($participant['email'], $search_query) !== false
+        ) {
             $filtered_participants[] = $participant;
         }
     }
@@ -63,21 +65,23 @@ if (!empty($search_query) && !empty($participants)) {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Participants List - Schedule Events</title>
     <link rel="stylesheet" href="styles1.css">
 </head>
+
 <body>
     <!-- Sidebar Navigation -->
     <div class="sidebar">
         <div class="logo-section">
             <img src="photos/SCHEDULE RBG.png" alt="Schedule Logo" class="logo1">
         </div>
-        
+
         <div class="separator"></div>
-        
+
         <div class="nav-menu">
             <a href="Dashboard.php" class="nav-item" id="dashboard">
                 <img src="photos/dashboard-icon.png" alt="Dashboard" class="nav-icon">
@@ -125,7 +129,7 @@ if (!empty($search_query) && !empty($participants)) {
                 </div>
 
                 <div class="separator-line"></div>
-                
+
                 <div class="event-info">
                     <h2><?php echo htmlspecialchars($event['event_name']); ?></h2>
                     <p><strong>Date:</strong> <?php echo htmlspecialchars(date('F j, Y', strtotime($event['event_date']))); ?></p>
@@ -140,7 +144,7 @@ if (!empty($search_query) && !empty($participants)) {
                         <button type="submit" class="participants-search-button">Search</button>
                     </form>
                 </div>
-                
+
                 <div class="participants-list-container">
                     <?php if (empty($participants)): ?>
                         <p class="no-participants">No participants registered for this event yet.</p>
@@ -151,21 +155,24 @@ if (!empty($search_query) && !empty($participants)) {
                                 <p class="label">Email</p>
                                 <p class="label">Phone</p>
                             </div>
-                            
+
                             <?php foreach ($participants as $participant): ?>
                                 <div class="participant-item">
-                                    <p class="participant-name"><?php echo htmlspecialchars($participant['name']); ?></p>
-                                    <p class="participant-email"><?php echo htmlspecialchars($participant['email']); ?></p>
-                                    <p class="participant-phone"><?php echo isset($participant['phone']) ? htmlspecialchars($participant['phone']) : 'N/A'; ?></p>
+                                    <p class="participant-name"><?php echo htmlspecialchars($participant['name'] ?? 'N/A'); ?></p>
+                                    <p class="participant-email"><?php echo htmlspecialchars($participant['email'] ?? 'N/A'); ?></p>
+                                    <p class="participant-phone"><?php echo htmlspecialchars($participant['phone'] ?? 'N/A'); ?></p>
+                                    <div class="participant-actions">
+                                        <form method="post">
+                                            <input type="hidden" name="event_id" value="<?php echo htmlspecialchars($event['event_id']); ?>">
+                                            <input type="hidden" name="participant_id" value="<?php echo htmlspecialchars($participant['id'] ?? ''); ?>">
+                                            <button type="submit" name="delete_participant" class="delete-participant-button" onclick="return confirm('Are you sure you want to remove this participant?');">Remove</button>
+                                        </form>
+                                    </div>
                                 </div>
                             <?php endforeach; ?>
                         </div>
                     <?php endif; ?>
                 </div>
-                
-                <!--<div class="back-button-container">
-                    <a href="ViewEvent.php?event_id=<?php echo htmlspecialchars($event['event_id']); ?>&ref=<?php echo htmlspecialchars($referrer); ?>" class="back-button">Back to Event</a>
-                </div>--> <!--HINDI KO MAAYOS!!!-->
             <?php endif; ?>
         </div>
     </div>
@@ -174,33 +181,33 @@ if (!empty($search_query) && !empty($participants)) {
         document.addEventListener('DOMContentLoaded', function() {
             // Get all navigation items
             const navItems = document.querySelectorAll('.nav-item');
-            
+
             // Get current page URL
             const currentPage = window.location.pathname;
-            
+
             // Remove 'active' class from all navigation items
             navItems.forEach(function(item) {
                 item.classList.remove('active');
             });
-            
+
             // Find which nav item matches the current page and set it as active
             navItems.forEach(function(item) {
                 // Get the href attribute
                 const href = item.getAttribute('href');
-                
+
                 // Extract just the filename from the href
                 const hrefPage = href.split('/').pop();
-                
+
                 // Extract just the filename from the current URL
                 const currentPageName = currentPage.split('/').pop();
-                
+
                 // Check if this nav item corresponds to the current page
                 if (
-                    currentPageName === hrefPage || 
+                    currentPageName === hrefPage ||
                     (currentPageName === 'Dashboard.php' && item.id === 'dashboard') ||
                     (currentPageName === '' && item.id === 'dashboard') ||
                     (currentPageName === 'ViewEvent.php' && item.id === 'my-events') ||
-                    (currentPageName === 'ParticipantsList.php' && item.id === 'my-events')    
+                    (currentPageName === 'ParticipantsList.php' && item.id === 'my-events')
                 ) {
                     item.classList.add('active');
                 }
@@ -209,4 +216,5 @@ if (!empty($search_query) && !empty($participants)) {
     </script>
 
 </body>
+
 </html>
