@@ -1177,9 +1177,9 @@ button.submit-button:hover {
 }
 
 .export-button:hover {
-    font-weight: bold;
-    transform: scale(1.05);
-    transition: transform 0.2s ease-in-out;
+    background: linear-gradient(135deg, #388E3C, #66BB6A);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    transform: translateY(-2px);
 }
 
 /* Messages styling */
