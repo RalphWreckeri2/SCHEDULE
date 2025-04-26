@@ -7,6 +7,7 @@ session_start();
 
 $event = null;
 $error_message = null;
+$success_message = null;
 $participants = [];
 
 // Check if user is logged in
@@ -16,6 +17,36 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
+
+// Handle participant deletion
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['delete_participant'])) {
+    $participant_id = isset($_POST['participant_id']) ? $_POST['participant_id'] : '';
+    $event_id = isset($_POST['event_id']) ? $_POST['event_id'] : '';
+
+    // Debug information
+    error_log("Deleting participant: User ID = '$participant_id', Event ID = '$event_id'");
+
+    // Validate inputs
+    if (empty($participant_id)) {
+        $error_message = "Error: Missing participant ID.";
+    } else if (empty($event_id)) {
+        $error_message = "Error: Missing event ID.";
+    } else {
+        try {
+            $result = $UserManager->DeleteParticipant($participant_id, $event_id);
+            if ($result) {
+                $success_message = "Participant removed successfully.";
+                // Refresh the participants list
+                $participants = $UserManager->GetEventParticipants($event_id);
+            } else {
+                $error_message = "Failed to remove participant. Please try again.";
+            }
+        } catch (Exception $e) {
+            error_log("Error deleting participant: " . $e->getMessage());
+            $error_message = "Error: " . $e->getMessage();
+        }
+    }
+}
 
 // Get the specific event ID from URL parameter
 if (isset($_GET['event_id'])) {
@@ -116,13 +147,7 @@ if (!empty($search_query) && !empty($participants)) {
     <!-- Main Content Area -->
     <div class="participants-main-content">
         <div class="participants-in-main-content">
-            <?php if ($error_message): ?>
-                <div class="error-message">
-                    <h2>Error</h2>
-                    <p><?php echo htmlspecialchars($error_message); ?></p>
-                    <!--HINDI KO MAAYOS<a href="MyEvents.php" class="back-button">Back to My Events</a>-->
-                </div>
-            <?php elseif ($event): ?>
+            <?php if ($event): ?>
                 <div class="header">
                     <h1>Participants List</h1>
                     <p>Manage and track event participants effectively.</p>
@@ -154,6 +179,7 @@ if (!empty($search_query) && !empty($participants)) {
                                 <p class="label">Name</p>
                                 <p class="label">Email</p>
                                 <p class="label">Phone</p>
+                                <p class="label">Actions</p>
                             </div>
 
                             <?php foreach ($participants as $participant): ?>
@@ -173,6 +199,10 @@ if (!empty($search_query) && !empty($participants)) {
                         </div>
                     <?php endif; ?>
                 </div>
+<<<<<<< HEAD
+=======
+
+>>>>>>> recovery-branch
             <?php endif; ?>
         </div>
     </div>
@@ -212,8 +242,28 @@ if (!empty($search_query) && !empty($participants)) {
                     item.classList.add('active');
                 }
             });
+
+            // Auto-hide success message after 3 seconds
+            const successMessage = document.querySelector('.success-message');
+            if (successMessage) {
+                setTimeout(function() {
+                    successMessage.style.display = 'none';
+                }, 3000);
+            }
         });
+
+        // Function to confirm deletion
+        function confirmDelete() {
+            return confirm('Are you sure you want to remove this participant? This action cannot be undone.');
+        }
     </script>
+
+    <?php if ($success_message): ?>
+        <script>
+            // Show alert when page loads
+            alert("<?php echo $success_message; ?>");
+        </script>
+    <?php endif; ?>
 
 </body>
 

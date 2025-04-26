@@ -147,54 +147,55 @@ if (isset($_SESSION['user_id'])) {
                                 <button class="register-button open-registration-modal" data-event-id="<?php echo htmlspecialchars($event['event_id']); ?>">Register Now</button>
                             </div>
                         </div>
+                    <?php endforeach; ?>
                 </div>
-            <?php endforeach; ?>
-        </div>
-    <?php endif; ?>
+            <?php endif; ?>
 
-    <div class="separator-line"></div>
+            <div class="separator-line"></div>
 
-    <h2>Contact Us</h2>
-    <p class="description">
-        Have questions or need assistance? We're here to help! Feel free to reach out to us for any inquiries about event registrations, technical support, or general concerns.
-    </p>
+            <h2>Contact Us</h2>
+            <p class="description">
+                Have questions or need assistance? We're here to help! Feel free to reach out to us for any inquiries about event registrations, technical support, or general concerns.
+            </p>
 
-    <div class="contact-info">
-        <div class="contact-item">
-            <img src="photos/address-icon.png" alt="Address" class="contact-icon">
-            <div class="contact-text">
-                <strong>Address:</strong> 1234 Rizal Street, Makati City, Metro Manila, Philippines
+            <div class="contact-info">
+                <div class="contact-item">
+                    <img src="photos/address-icon.png" alt="Address" class="contact-icon">
+                    <div class="contact-text">
+                        <strong>Address:</strong> 1234 Rizal Street, Makati City, Metro Manila, Philippines
+                    </div>
+                </div>
+
+                <div class="contact-item">
+                    <img src="photos/email-icon.png" alt="Email" class="contact-icon">
+                    <div class="contact-text">
+                        <strong>Email:</strong> support@scheduleevents.ph
+                    </div>
+                </div>
+
+                <div class="contact-item">
+                    <img src="photos/phone-icon.png" alt="Phone" class="contact-icon">
+                    <div class="contact-text">
+                        <strong>Phone:</strong> (+63) 912-345-6789
+                    </div>
+                </div>
+
+                <div class="contact-item">
+                    <img src="photos/social-icon.png" alt="Socials" class="contact-icon">
+                    <div class="contact-text">
+                        <strong>Socials:</strong> facebook.com/scheduleeventsph | twitter.com/scheduleeventsph
+                    </div>
+                </div>
             </div>
+
+            <p class="social-text">
+                You can also follow us on our social media channels for updates and announcements!
+            </p>
+
+            <p class="copyright">All Rights Reserved. 2025</p>
+
         </div>
 
-        <div class="contact-item">
-            <img src="photos/email-icon.png" alt="Email" class="contact-icon">
-            <div class="contact-text">
-                <strong>Email:</strong> support@scheduleevents.ph
-            </div>
-        </div>
-
-        <div class="contact-item">
-            <img src="photos/phone-icon.png" alt="Phone" class="contact-icon">
-            <div class="contact-text">
-                <strong>Phone:</strong> (+63) 912-345-6789
-            </div>
-        </div>
-
-        <div class="contact-item">
-            <img src="photos/social-icon.png" alt="Socials" class="contact-icon">
-            <div class="contact-text">
-                <strong>Socials:</strong> facebook.com/scheduleeventsph | twitter.com/scheduleeventsph
-            </div>
-        </div>
-    </div>
-
-    <p class="social-text">
-        You can also follow us on our social media channels for updates and announcements!
-    </p>
-
-    <p class="copyright">All Rights Reserved. 2025</p>
-    </div>
     </div>
 
     <script>

@@ -70,6 +70,25 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
         }
     }
 
+    // Validate event date
+    $eventDateObj = new DateTime($eventDate);
+    $today = new DateTime();
+    $today->setTime(0, 0);
+    $eventDateObj->setTime(0, 0);
+
+    $interval = $today->diff($eventDateObj)->days;
+
+    if ($eventDateObj < $today) {
+        echo "<script>alert('Event date cannot be in the past.'); window.history.back();</script>";
+        exit;
+    }
+
+    if ($interval < 14) {
+        echo "<script>alert('Event must be scheduled at least 2 weeks from today.'); window.history.back();</script>";
+        exit;
+    }
+
+
     // Call CreateEvent with delimited strings
     $success = $UserManager->CreateEvent(
         $eventPhoto,

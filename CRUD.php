@@ -442,6 +442,7 @@ class UserManager
         $row = $result->fetch_assoc();
         return $row['count'];
     }
+
     public function GetEventParticipants($event_id)
     {
         error_log("Getting participants for event ID: " . $event_id);
@@ -466,6 +467,29 @@ class UserManager
         } else {
             error_log("No participants found or get_result failed.");
             return [];
+        }
+    }
+
+    public function DeleteParticipant($user_id, $event_id)
+    {
+        // Check if user_id is empty
+        if (empty($user_id)) {
+            error_log("DeleteParticipant: Empty user_id provided");
+            return false;
+        }
+
+        try {
+            // Use direct query with the correct field names
+            $stmt = $this->conn->prepare("DELETE FROM eventregistration WHERE user_id = ? AND event_id = ?");
+            if ($stmt === false) {
+                error_log("DeleteParticipant: Prepare statement failed: " . $this->conn->error);
+                return false;
+            }
+            $stmt->bind_param("ii", $user_id, $event_id);
+            return $stmt->execute();
+        } catch (Exception $e) {
+            error_log("DeleteParticipant: Exception: " . $e->getMessage());
+            return false;
         }
     }
 
