@@ -77,21 +77,6 @@ if (isset($_GET['event_id'])) {
 } else {
     $error_message = "No event specified.";
 }
-
-// Handle search functionality
-$search_query = isset($_GET['search']) ? $_GET['search'] : '';
-if (!empty($search_query) && !empty($participants)) {
-    $filtered_participants = [];
-    foreach ($participants as $participant) {
-        if (
-            stripos($participant['name'], $search_query) !== false ||
-            stripos($participant['email'], $search_query) !== false
-        ) {
-            $filtered_participants[] = $participant;
-        }
-    }
-    $participants = $filtered_participants;
-}
 ?>
 
 <!DOCTYPE html>
@@ -162,18 +147,19 @@ if (!empty($search_query) && !empty($participants)) {
                 </div>
 
                 <div class="participants-search-bar">
-                    <form method="GET" action="ParticipantsList.php" style="display: flex; width: 100%; gap: 10px;">
+                    <form id="search-form" style="display: flex; width: 100%; gap: 10px;">
                         <input type="hidden" name="event_id" value="<?php echo htmlspecialchars($event['event_id']); ?>">
                         <input type="hidden" name="ref" value="<?php echo htmlspecialchars($referrer); ?>">
-                        <input type="text" name="search" placeholder="Search participants..." class="participants-search-input" value="<?php echo htmlspecialchars($search_query); ?>">
-                        <button type="submit" class="participants-search-button">Search</button>
+                        <input type="text" id="search-input" placeholder="Search participants..." class="participants-search-input">
+                        <button type="submit" id="search-button" class="participants-search-button">Search</button>
                     </form>
                 </div>
 
                 <div class="participants-list-container">
-                    <?php if (empty($participants)): ?>
-                        <p class="no-participants">No participants registered for this event yet.</p>
-                    <?php else: ?>
+                    <p class="no-participants" id="no-participants-message" style="display: <?php echo empty($participants) ? 'block' : 'none'; ?>;">
+                        No participants registered for this event yet.
+                    </p>
+                    <?php if (!empty($participants)): ?>
                         <div class="participants-list">
                             <div class="participants-list-labels">
                                 <p class="label">Name</p>
@@ -210,29 +196,19 @@ if (!empty($search_query) && !empty($participants)) {
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Get all navigation items
+            // Navigation highlighting
             const navItems = document.querySelectorAll('.nav-item');
-
-            // Get current page URL
             const currentPage = window.location.pathname;
 
-            // Remove 'active' class from all navigation items
             navItems.forEach(function(item) {
                 item.classList.remove('active');
             });
 
-            // Find which nav item matches the current page and set it as active
             navItems.forEach(function(item) {
-                // Get the href attribute
                 const href = item.getAttribute('href');
-
-                // Extract just the filename from the href
                 const hrefPage = href.split('/').pop();
-
-                // Extract just the filename from the current URL
                 const currentPageName = currentPage.split('/').pop();
 
-                // Check if this nav item corresponds to the current page
                 if (
                     currentPageName === hrefPage ||
                     (currentPageName === 'Dashboard.php' && item.id === 'dashboard') ||
@@ -251,20 +227,54 @@ if (!empty($search_query) && !empty($participants)) {
                     successMessage.style.display = 'none';
                 }, 3000);
             }
+
+            // Real-time search functionality
+            const searchForm = document.getElementById('search-form');
+            const searchInput = document.getElementById('search-input');
+            const searchButton = document.getElementById('search-button');
+            const participantItems = document.querySelectorAll('.participant-item');
+            const noParticipantsMessage = document.getElementById('no-participants-message');
+
+            // Prevent form submission to avoid page reload
+            searchForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                filterParticipants();
+            });
+
+            function filterParticipants() {
+                const query = searchInput.value.trim().toLowerCase();
+                let hasMatches = false;
+
+                participantItems.forEach(item => {
+                    const name = item.querySelector('.participant-name')?.textContent.toLowerCase() || '';
+                    const email = item.querySelector('.participant-email')?.textContent.toLowerCase() || '';
+                    const matches = name.includes(query) || email.includes(query);
+
+                    item.style.display = matches || query === '' ? 'grid' : 'none';
+                    if (matches) {
+                        hasMatches = true;
+                    }
+                });
+
+                // Show "no participants" message if no matches and query is not empty
+                noParticipantsMessage.style.display = (query !== '' && !hasMatches) ? 'block' : 'none';
+            }
+
+            // Bind search to input event for real-time filtering and button click
+            searchInput.addEventListener('input', filterParticipants);
+            searchButton.addEventListener('click', filterParticipants);
+
+            // Function to confirm deletion
+            function confirmDelete() {
+                return confirm('Are you sure you want to remove this participant? This action cannot be undone.');
+            }
         });
 
-        // Function to confirm deletion
-        function confirmDelete() {
-            return confirm('Are you sure you want to remove this participant? This action cannot be undone.');
-        }
-    </script>
-
-    <?php if ($success_message): ?>
-        <script>
-            // Show alert when page loads
+        // Show alert for success message
+        <?php if ($success_message): ?>
             alert("<?php echo $success_message; ?>");
-        </script>
-    <?php endif; ?>
+        <?php endif; ?>
+    </script>
 
 </body>
 

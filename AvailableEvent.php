@@ -36,7 +36,7 @@ if (isset($_SESSION['user_id'])) {
     <!-- Modal -->
     <div id="success-modal" class="modal">
         <div class="modal-content">
-            <span class="close">&times;</span>
+            <span class="close">×</span>
             <p id="success-message"></p>
         </div>
     </div>
@@ -44,7 +44,7 @@ if (isset($_SESSION['user_id'])) {
     <!-- Modal Container -->
     <div id="eventRegistrationModal" class="event-registration-modal" style="display: none;">
         <div class="event-registration-modal-content">
-            <span class="event-registration-close-button">&times;</span>
+            <span class="event-registration-close-button">×</span>
             <div id="modal-content"></div> <!-- Content will be loaded here -->
         </div>
     </div>
@@ -86,8 +86,6 @@ if (isset($_SESSION['user_id'])) {
                 <span>Log Out</span>
             </a>
         </div>
-
-
     </div>
 
     <!-- Main Content Area -->
@@ -107,7 +105,7 @@ if (isset($_SESSION['user_id'])) {
             </p>
 
             <div class="search-bar">
-                <input type="text" placeholder="Search events..." class="search-input">
+                <input type="text" id="search-input" placeholder="Search events..." class="search-input">
                 <button class="search-button">Search</button>
             </div>
 
@@ -123,17 +121,18 @@ if (isset($_SESSION['user_id'])) {
                 </div>
             </form>
 
-
             <h2>Choose Your Bet!</h2>
             <p class="description">
                 Click on “Register Now” for more details.
             </p>
 
-            <?php if (empty($events)) : ?>
-                <div class="no-events-wrapper">
-                    <p class="no-events-message">Sorry Scheduler, there are no available events at this point in time.</p>
-                </div>
-            <?php else : ?>
+            <div class="no-events-wrapper">
+                <p class="no-events-message" id="no-events-message" style="display: <?php echo empty($events) ? 'block' : 'none'; ?>;">
+                    Sorry Scheduler, there are no available events at this point in time.
+                </p>
+            </div>
+
+            <?php if (!empty($events)) : ?>
                 <div class="event-panel-container">
                     <?php foreach ($events as $event) : ?>
                         <div class="event-panel">
@@ -195,39 +194,27 @@ if (isset($_SESSION['user_id'])) {
             <p class="copyright">All Rights Reserved. 2025</p>
 
         </div>
-
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Get all navigation items
             const navItems = document.querySelectorAll('.nav-item');
-
-            // Get current page URL
-            const currentPage = window.location.pathname;
+            const currentPage = window.location.pathname.toLowerCase();
+            console.log('Current Page:', currentPage);
 
             // Remove 'active' class from all navigation items
             navItems.forEach(function(item) {
                 item.classList.remove('active');
             });
 
-            // Find which nav item matches the current page and set it as active
             navItems.forEach(function(item) {
-                // Get the href attribute
-                const href = item.getAttribute('href');
+                const href = item.getAttribute('href').toLowerCase();
+                const hrefPage = href.split('/').pop().split('?')[0];
+                const currentPageName = currentPage.split('/').pop().split('?')[0];
 
-                // Extract just the filename from the href
-                const hrefPage = href.split('/').pop();
-
-                // Extract just the filename from the current URL
-                const currentPageName = currentPage.split('/').pop();
-
-                // Check if this nav item corresponds to the current page
-                if (currentPageName === hrefPage ||
-                    (currentPageName === 'Dashboard.php' && item.id === 'dashboard') ||
-                    (currentPageName === '' && item.id === 'dashboard')) {
+                if (hrefPage === currentPageName ||
+                    (currentPageName === 'AvailableEvent.php' && item.id === 'available-events')) {
                     item.classList.add('active');
-                    console.log('Set active:', item.id);
                 }
             });
 
@@ -239,7 +226,6 @@ if (isset($_SESSION['user_id'])) {
 
                 document.body.appendChild(popup);
 
-                // Remove the pop-up after 3 seconds
                 setTimeout(() => {
                     popup.remove();
                 }, 3000);
@@ -267,11 +253,9 @@ if (isset($_SESSION['user_id'])) {
                                 })
                                 .then(res => res.json())
                                 .then(data => {
-                                    // Show the pop-up message
                                     showPopup(data.message, data.success);
 
                                     if (data.success) {
-                                        // Reload the modal content to show registration form again
                                         setTimeout(() => {
                                             loadModalContent(eventId);
                                         }, 1000);
@@ -301,11 +285,9 @@ if (isset($_SESSION['user_id'])) {
                             })
                             .then(res => res.json())
                             .then(data => {
-                                // Show the pop-up message
                                 showPopup(data.message, data.success);
 
                                 if (data.success) {
-                                    // Reload the modal content to show cancel button
                                     setTimeout(() => {
                                         loadModalContent(eventId);
                                     }, 1000);
@@ -326,7 +308,6 @@ if (isset($_SESSION['user_id'])) {
                     .then(data => {
                         document.getElementById('modal-content').innerHTML = data;
 
-                        // Setup event handlers for the new content
                         setupCancelButton();
                         setupRegistrationForm();
                     })
@@ -356,6 +337,103 @@ if (isset($_SESSION['user_id'])) {
                     modal.style.display = 'none';
                 }
             });
+
+            // Search functionality for event name
+            const searchInput = document.getElementById('search-input');
+            const searchButton = document.querySelector('.search-button');
+            const eventPanels = document.querySelectorAll('.event-panel');
+            const noEventsMessage = document.getElementById('no-events-message');
+
+            function filterEventsBySearch() {
+                const query = searchInput.value.trim().toLowerCase();
+                let hasMatches = false;
+
+                eventPanels.forEach(panel => {
+                    const eventName = panel.querySelector('h3')?.textContent.toLowerCase() || '';
+                    const matches = eventName.includes(query);
+
+                    panel.style.display = matches || query === '' ? 'block' : 'none';
+                    if (matches) {
+                        hasMatches = true;
+                    }
+                });
+
+                // Show "no events" message if no matches and query is not empty
+                noEventsMessage.style.display = (query !== '' && !hasMatches) ? 'block' : 'none';
+            }
+
+            searchButton.addEventListener('click', filterEventsBySearch);
+            searchInput.addEventListener('input', filterEventsBySearch);
+
+            // Existing fetchEvents function (unchanged)
+            function fetchEvents() {
+                const eventPanelsContainer = document.querySelector('.event-panel-container');
+                const noEventsMessage = document.getElementById('noEventsMessage');
+
+                fetch('MyEvents.php?action=fetch_events')
+                    .then(response => response.json())
+                    .then(events => {
+                        eventPanelsContainer.innerHTML = '';
+
+                        if (events.length === 0) {
+                            noEventsMessage.style.display = 'block';
+                            return;
+                        }
+
+                        noEventsMessage.style.display = 'none';
+
+                        events.forEach(event => {
+                            const panel = document.createElement('div');
+                            panel.classList.add('event-panel');
+                            panel.setAttribute('data-status', event.event_status);
+
+                            const eventImage = document.createElement('img');
+                            eventImage.src = event.event_photo;
+                            eventImage.alt = 'Event Image';
+                            eventImage.classList.add('event-image');
+
+                            const eventName = document.createElement('h3');
+                            eventName.classList.add('event-name');
+                            eventName.textContent = event.event_name;
+
+                            const eventCategory = document.createElement('p');
+                            eventCategory.classList.add('event-category');
+                            eventCategory.innerHTML = `<strong>Category: </strong>${event.event_category}`;
+
+                            const eventSlots = document.createElement('p');
+                            eventSlots.classList.add('event-slots');
+                            eventSlots.innerHTML = `<strong>Slots: </strong>${event.event_slots}`;
+
+                            const eventDescription = document.createElement('p');
+                            eventDescription.classList.add('event-description');
+                            eventDescription.textContent = event.event_description;
+
+                            const buttonWrapper = document.createElement('div');
+                            buttonWrapper.classList.add('button-wrapper');
+
+                            const viewButton = document.createElement('button');
+                            viewButton.classList.add('view-button');
+                            viewButton.textContent = 'View Event';
+                            viewButton.onclick = function() {
+                                window.location.href = `ViewEvent.php?event_id=${event.event_id}`;
+                            };
+
+                            buttonWrapper.appendChild(viewButton);
+
+                            panel.appendChild(eventImage);
+                            panel.appendChild(eventName);
+                            panel.appendChild(eventCategory);
+                            panel.appendChild(eventSlots);
+                            panel.appendChild(eventDescription);
+                            panel.appendChild(buttonWrapper);
+
+                            eventPanelsContainer.appendChild(panel);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error fetching events:', error);
+                    });
+            }
         });
     </script>
 

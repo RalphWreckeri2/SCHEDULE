@@ -85,7 +85,7 @@ if (isset($_SESSION['user_id'])) {
 
             <div class="search-bar">
                 <input type="text" id="searchInput" placeholder="Search an event name..." class="search-input">
-                <button class="search-button" onclick="applySearch()">Search</button>
+                <!--<button class="search-button" onclick="applySearch()">Search</button>-->
             </div>
 
             <div class="filter-container">
@@ -174,7 +174,7 @@ if (isset($_SESSION['user_id'])) {
                         </div>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <p class="no-events-message">You have no past events yet, Scheduler!.</p>
+                    <p class="no-events-message">You have no past events yet, Scheduler!</p>
                 <?php endif; ?>
             </div>
 

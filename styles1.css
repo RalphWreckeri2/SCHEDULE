@@ -648,6 +648,7 @@ h3.description-heading {
     justify-content: flex-end;
     align-items: center;
     margin-bottom: 30px;
+    margin-right: 10px;
 }
 
 .filter-select {
