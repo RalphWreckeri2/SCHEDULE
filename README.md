@@ -5,14 +5,13 @@ This project is designed to help manage and organize events efficiently. It prov
 <br>
 
 Scope:<br>
-✅ The system will allow event organizers to create and manage events.<br>
-✅ Users can register for events, receive notifications, and track their attendance.<br>
-✅ The system will provide automated email confirmations for successful registrations.<br>
-✅ Event handlers can monitor attendance and analyze participant data.<br>
+✅ User can create and join events. <br>
+✅ The system will allow event creators to edit their events.<br>
+✅ The system will allow event participants to cancel their joined events.<br>
+✅ Event handlers can monitor attendance and download participants list as an excel file.<br>
 <br>
 Delimitation:<br>
 ✅ The system is limited to online event registration and management; it does not support in-person ticket sales.<br>
-✅ It does not provide payment integration for paid events.<br>
 ✅ The project focuses on web-based access and does not include a mobile application.<br>
 ✅ QR code check-in and certificate generation are optional features for later implementation.<br>
 <br>
