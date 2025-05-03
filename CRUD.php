@@ -1,7 +1,6 @@
 <?php
 include 'DbConnection.php';
 
-// Procedures to handle CRUD operations
 class UserManager
 {
     private $conn;
@@ -18,12 +17,13 @@ class UserManager
             return false; // User already exists
         }
 
-        $hashed_password = password_hash($password, PASSWORD_DEFAULT); // Hashing the password
-        $stmt = $this->conn->prepare("CALL InsertUser(?, ?, ?, ?)"); // Calling the stored procedure
-        $stmt->bind_param("ssss", $name, $email, $phone, $hashed_password); // Binding parameters
-        return $stmt->execute(); // Executing the statement
+        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+        $stmt = $this->conn->prepare("CALL InsertUser(?, ?, ?, ?)");
+        $stmt->bind_param("ssss", $name, $email, $phone, $hashed_password);
+        return $stmt->execute();
     }
 
+    // checks if the user already exists in the users table - situated in the creat account file
     public function UserExists($email)
     {
         $stmt = $this->conn->prepare("SELECT * FROM users WHERE email= ?");
@@ -31,25 +31,28 @@ class UserManager
         return $stmt->execute();
     }
 
+    // allows the already created user to push through when signing in - situated in the sign in file
     public function AuthenticateUser($name, $email, $password)
     {
-        $stmt = $this->conn->prepare("SELECT * FROM users WHERE name= ? AND email= ?"); // sabay na lang icheck para mas logical
+        $stmt = $this->conn->prepare("SELECT * FROM users WHERE name= ? AND email= ?");
         $stmt->bind_param("ss", $name, $email);
         $stmt->execute();
-        $result = $stmt->get_result(); // Getting the result set
-        $user = $result->fetch_assoc();
+        $result = $stmt->get_result();
+        $user = $result->fetch_assoc(); // fetches row by row
 
         if ($user && password_verify($password, $user['password'])) {
             if (session_status() === PHP_SESSION_NONE) {
                 session_start();
             }
-            $_SESSION['user_id'] = $user['id']; // Store user ID in session
+            $_SESSION['user_id'] = $user['id'];
             return $user;
         };
 
-        return false; // User not found or password mismatch
+        return false;
     }
 
+    // checking if the name is in the users table 
+    // purpose: to retain the correct credentials in a field if the signing in did not push through
     public function isNameValid($name)
     {
         $stmt = $this->conn->prepare("SELECT * FROM users WHERE name = ?");
@@ -64,6 +67,8 @@ class UserManager
         }
     }
 
+    // checking if the email is in the users table 
+    // purpose: to retain the correct credentials in a field if the signing in did not push through
     public function isEmailValid($email)
     {
         $stmt = $this->conn->prepare("SELECT * FROM users WHERE email = ?");
@@ -78,6 +83,7 @@ class UserManager
         }
     }
 
+    // inserts the reset token in the password resets table - 5 characters (capital letters and/or 0-9)
     public function InsertResetToken($email, $token)
     {
         $stmt = $this->conn->prepare("call InsertResetToken(?, ?)");
@@ -85,6 +91,7 @@ class UserManager
         return $stmt->execute();
     }
 
+    // updates the user's password in the users table
     public function UpdatePassword($email, $new_password)
     {
         $stmt = $this->conn->prepare("CALL UpdatePassword(?, ?)");
@@ -95,15 +102,14 @@ class UserManager
         return $stmt->execute();
     }
 
+    // creates an event 
     public function CreateEvent($event_photo, $event_name, $event_category, $event_slots, $event_status, $event_description, $event_date, $event_starting_time, $event_end_time, $event_location, $event_speaker, $speaker_description)
     {
         try {
-            // Start session if not already started
             if (session_status() == PHP_SESSION_NONE) {
                 session_start();
             }
 
-            // Check if user_id exists in session
             if (!isset($_SESSION['user_id'])) {
                 error_log("Error: user_id not found in session");
                 return false;
@@ -111,14 +117,12 @@ class UserManager
 
             $user_id = $_SESSION['user_id'];
 
-            // Prepare the statement
-            $stmt = $this->conn->prepare("CALL CreateEvent(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, @event_id)");
+            $stmt = $this->conn->prepare("CALL CreateEvent(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, @event_id)"); // out param ang event_id
             if (!$stmt) {
                 error_log("Prepare failed: " . $this->conn->error);
                 return false;
             }
 
-            // Bind parameters
             $bind_result = $stmt->bind_param(
                 "isssissssssss",
                 $user_id,
@@ -141,7 +145,6 @@ class UserManager
                 return false;
             }
 
-            // Execute the statement
             $execute_result = $stmt->execute();
             if (!$execute_result) {
                 error_log("Execute failed: " . $stmt->error);
@@ -163,6 +166,7 @@ class UserManager
         }
     }
 
+    // fetch events created by the user - situated in my events page
     public function GetEvents($user_id)
     {
         $stmt = $this->conn->prepare("CALL GetEvents(?)");
@@ -170,23 +174,22 @@ class UserManager
         $stmt->execute();
         $result = $stmt->get_result();
 
-        // Check if there are any results
         if ($result->num_rows > 0) {
-            return $result->fetch_all(MYSQLI_ASSOC); // Return events as an associative array
+            return $result->fetch_all(MYSQLI_ASSOC); // Return events as an associative array (all)
         } else {
             return []; // Return an empty array if no events found
         }
     }
 
+    // fetch user information
     public function ProfileFetcher($user_id)
     {
-        // Optional: Check if user is logged in
+        // double check if the user is logged in
         if (!isset($_SESSION['user_id'])) {
             echo "<script>alert('Error: You are not logged in.')</script>";
             return false;
         }
 
-        // Prepare the SQL query
         $stmt = $this->conn->prepare("CALL ProfileFetcher(?)");
         if (!$stmt) {
             error_log("Prepare failed: " . $this->conn->error);
@@ -195,16 +198,16 @@ class UserManager
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
 
-        // Fetch result
         $result = $stmt->get_result();
 
         if ($result && $result->num_rows > 0) {
-            return $result->fetch_assoc(); // Return the user's profile data as an associative array
+            return $result->fetch_assoc(); // Return the user's profile data as an associative array (row by row)
         } else {
-            return false; // No user found
+            return false;
         }
     }
 
+    // for fetching events based on category - situated in available events
     public function EventFetcher($user_id, $event_category)
     {
         $stmt = $this->conn->prepare("CALL EventFetcher(?, ?)");
@@ -213,16 +216,17 @@ class UserManager
         if ($stmt->execute()) {
             $result = $stmt->get_result();
             if ($result && $result->num_rows > 0) {
-                return $result->fetch_all(MYSQLI_ASSOC); // Return events as an associative array
+                return $result->fetch_all(MYSQLI_ASSOC); // Return events as an associative array (all)
             } else {
                 return []; // Return an empty array if no events found
             }
         } else {
             error_log("Execute failed: " . $stmt->error);
-            return false; // Execution failed   
+            return false;
         }
     }
 
+    // fetching events for dashbaord - situated in the dahsboard
     public function EventFetcherInDb($user_id)
     {
         $stmt = $this->conn->prepare("CALL EventFetcherInDb(?)");
@@ -241,6 +245,7 @@ class UserManager
         }
     }
 
+    // fetching surface event details for event registration modal
     public function EventDetailsFetcher($event_id)
     {
         $stmt = $this->conn->prepare("SELECT e.event_slots, e.event_date, 
@@ -251,13 +256,14 @@ class UserManager
         $result = $stmt->get_result();
 
         if ($result && $result->num_rows > 0) {
-            return $result->fetch_assoc(); // Return event details as an associative array
+            return $result->fetch_assoc(); // Return event details as an associative array (row by row)
         } else {
             error_log("No event found for event_id: " . $event_id); // Log the error
             return false; // No event found
         }
     }
 
+    // for automatic appearance of user details for event registration modal
     public function GetUserDetails($user_id)
     {
         $stmt = $this->conn->prepare("SELECT name, email, phone FROM users WHERE id = ?");
@@ -265,12 +271,13 @@ class UserManager
         $stmt->execute();
         $result = $stmt->get_result();
         if ($result && $result->num_rows > 0) {
-            return $result->fetch_assoc(); // Return user details as an associative array
+            return $result->fetch_assoc(); // Return user details as an associative array (row by row)
         } else {
             return false; // No user found
         }
     }
 
+    // for registering a user to a specific event
     public function EventRegistration($user_id, $event_id, $name, $email, $phone)
     {
         if (!isset($_SESSION['user_id']) || !isset($_SESSION['event_id'])) {
@@ -281,21 +288,15 @@ class UserManager
             ];
         }
 
-        // Check if the user is already registered for the event
-        $checkStmt = $this->conn->prepare("SELECT * FROM eventregistration WHERE user_id = ? AND event_id = ?");
-        $checkStmt->bind_param("ii", $user_id, $event_id);
-        $checkStmt->execute();
-        $checkResult = $checkStmt->get_result();
-
-        if ($checkResult && $checkResult->num_rows > 0) {
-            // User is already registered
+        // Check if the user is already registered for the event using IsUserRegistered function
+        if ($this->IsUserRegistered($user_id, $event_id)) {
             return [
                 'success' => false,
                 'message' => 'You are already registered for this event.'
             ];
         }
 
-        // Proceed with registration if the user is not already registered
+        // Proceed with registration if the user is not yet registered
         $stmt = $this->conn->prepare('CALL EventRegistration(?, ?, ?, ?, ?)');
         $stmt->bind_param("iisss", $user_id, $event_id, $name, $email, $phone);
 
@@ -312,9 +313,9 @@ class UserManager
         }
     }
 
+    // for canceling event registration of a user
     public function CancelRegistration($user_id, $event_id)
     {
-        // Prepare the DELETE query
         $stmt = $this->conn->prepare("DELETE FROM eventregistration WHERE user_id = ? AND event_id = ?");
         if (!$stmt) {
             return [
@@ -323,10 +324,7 @@ class UserManager
             ];
         }
 
-        // Bind the parameters
         $stmt->bind_param("ii", $user_id, $event_id);
-
-        // Execute the query
         $stmt->execute();
 
         // Check if any rows were affected
@@ -343,6 +341,7 @@ class UserManager
         }
     }
 
+    // for updating user's profile picture - must be in uploads folder
     public function UpdateProfile($user_id, $user_profile)
     {
         $stmt = $this->conn->prepare("CALL UpdateProfile(?, ?)");
@@ -350,6 +349,7 @@ class UserManager
         $stmt->execute();
     }
 
+    // for updating an existing event
     public function UpdateEvent(
         $event_id,
         $user_id = null,
@@ -405,7 +405,7 @@ class UserManager
         return $response;
     }
 
-    // Get complete event details by ID
+    // Get complete event details by ID - situated in the view event page and edit event page
     public function GetEventById($event_id)
     {
         $stmt = $this->conn->prepare("SELECT e.*, 
@@ -432,7 +432,7 @@ class UserManager
         return $result->num_rows > 0;
     }
 
-    // Get the number of registered users for an event
+    // Get the number of registered users for an event (taken slots)
     public function GetRegisteredCount($event_id)
     {
         $stmt = $this->conn->prepare("SELECT COUNT(*) as count FROM eventregistration WHERE event_id = ?");
@@ -443,6 +443,7 @@ class UserManager
         return $row['count'];
     }
 
+    // for fetching the list of participants on a specific event - situated in the participants list page
     public function GetEventParticipants($event_id)
     {
         error_log("Getting participants for event ID: " . $event_id);
@@ -470,6 +471,7 @@ class UserManager
         }
     }
 
+    // for deleting a participant
     public function DeleteParticipant($user_id, $event_id)
     {
         // Check if user_id is empty
@@ -479,7 +481,6 @@ class UserManager
         }
 
         try {
-            // Use direct query with the correct field names
             $stmt = $this->conn->prepare("DELETE FROM eventregistration WHERE user_id = ? AND event_id = ?");
             if ($stmt === false) {
                 error_log("DeleteParticipant: Prepare statement failed: " . $this->conn->error);
@@ -493,7 +494,7 @@ class UserManager
         }
     }
 
-    // Delete an event
+    // for deleting an event
     public function DeleteEvent($event_id)
     {
         // First delete all registrations for this event
@@ -507,6 +508,7 @@ class UserManager
         return $stmt2->execute();
     }
 
+    // for updating event status using the current date as guide - edit event page
     public function UpdateEventStatusAutomatically($event_id = null)
     {
         // If no specific event_id is provided, update all events
@@ -538,6 +540,7 @@ class UserManager
         }
     }
 
+    // this is for getting the events joined by the user - situated in the my events page
     public function GetUserEventsByStatus($user_id, $status)
     {
         $stmt = $this->conn->prepare("CALL UserEventsBySimpleStatus(?, ?)");

@@ -39,19 +39,10 @@ function sendResetEmail($email, $token)
     }
 }
 
-// Check if the form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email'];
 
-    // Check if email exists in your users table
-    $checkQuery = "SELECT * FROM users WHERE email = ?";
-    $stmt = $conn->prepare($checkQuery);
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($result->num_rows > 0) {
-        // Generate a token (5 characters long)
+    if ($UserManager->isEmailValid($email)) {
         $token = substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, 5);
 
         if ($UserManager->InsertResetToken($email, $token)) {

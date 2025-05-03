@@ -8,32 +8,27 @@ session_start();
 $event = null;
 $referrer = isset($_GET['ref']) ? $_GET['ref'] : 'my-events'; // Default referrer is my-events
 
-// Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
-    header("Location: Login.php");
+    header("Location: SignIn.php");
     exit;
 }
 
 $user_id = $_SESSION['user_id'];
 
-// Get the specific event ID from URL parameter
 if (isset($_GET['event_id'])) {
     $event_id = $_GET['event_id'];
 
-    // Get the specific event details
     $event = $UserManager->GetEventById($event_id);
 
     if (!$event) {
         $error_message = "Event not found.";
     } else if ($event['user_id'] != $user_id) {
-        // Make sure the event belongs to the current user
         $error_message = "You don't have permission to edit this event.";
     }
 } else {
     $error_message = "No event specified.";
 }
 
-// Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['update_event'])) {
     $event_id = $_POST['event_id'];
 
@@ -371,7 +366,6 @@ if (empty($speakers)) {
 
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                // Get all navigation items
                 const navItems = document.querySelectorAll('.nav-item');
 
                 // Get current page URL and referrer

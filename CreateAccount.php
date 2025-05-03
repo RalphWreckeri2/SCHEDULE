@@ -1,11 +1,11 @@
 <?php
 include 'DbConnection.php';
-include 'CRUD.php'; // This is where your createUser() function lives
+include 'CRUD.php';
 
 session_start();
 
-$UserManager = new UserManager($conn); // Create an instance of UserManager
-$showModal = false; // Flag to control modal display
+$UserManager = new UserManager($conn);
+$showModal = false;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $name = $_POST['name'];
@@ -14,7 +14,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = $_POST['password'];
 
     if ($UserManager->InsertUser($name, $email, $phone, $password)) {
-        $showModal = true; // Success modal or redirection flag
+        $showModal = true;
     } else {
         if ($UserManager->UserExists($email)) {
             echo "<script>alert('Error: User already exists.');</script>";
@@ -74,14 +74,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                         event.preventDefault();
                                         alert("Password must be at least 8 characters long.");
                                     }
-                                }); 
+                                });
 
-                                // Toggle password visibility
                                 togglePasswordButton.addEventListener('click', function() {
                                     const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
                                     passwordInput.setAttribute('type', type);
 
-                                    // Toggle button text
                                     this.textContent = type === 'password' ? 'Show' : 'Hide';
                                 });
                             });
@@ -105,7 +103,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 
     <script>
-        // Function to redirect to the sign-in page
         function redirectToSignIn() {
             window.location.href = 'SignIn.php';
         }

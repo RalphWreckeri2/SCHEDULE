@@ -20,8 +20,8 @@ if (isset($_SESSION['user_id'])) {
     $user_id = $_SESSION['user_id'];
     $events = $UserManager->EventFetcherInDb($user_id);
 
-      // Get events joined by the user, grouped by status
-      $upcomingEvents = $UserManager->GetUserEventsByStatus($user_id, 'upcoming');
+    // Get events joined by the user, grouped by status
+    $upcomingEvents = $UserManager->GetUserEventsByStatus($user_id, 'upcoming');
 }
 
 ?>
@@ -276,10 +276,7 @@ if (isset($_SESSION['user_id'])) {
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Get all navigation items
             const navItems = document.querySelectorAll('.nav-item');
-
-            // Get current page URL
             const currentPage = window.location.pathname;
 
             // Remove 'active' class from all navigation items
@@ -289,14 +286,9 @@ if (isset($_SESSION['user_id'])) {
 
             // Find which nav item matches the current page and set it as active
             navItems.forEach(function(item) {
-                // Get the href attribute
                 const href = item.getAttribute('href');
-
-                // Extract just the filename from the href
-                const hrefPage = href.split('/').pop();
-
-                // Extract just the filename from the current URL
-                const currentPageName = currentPage.split('/').pop();
+                const hrefPage = href.split('/').pop(); // Extract just the filename from the href
+                const currentPageName = currentPage.split('/').pop(); // Extract just the filename from the current URL
 
                 // Check if this nav item corresponds to the current page
                 if (currentPageName === hrefPage ||
@@ -305,14 +297,6 @@ if (isset($_SESSION['user_id'])) {
                     item.classList.add('active');
                     console.log('Set active:', item.id);
                 }
-            });
-
-            // Add click event listeners for navigation within the same page
-            navItems.forEach(function(item) {
-                item.addEventListener('click', function() {
-                    // We don't need to do anything here since the page will reload
-                    // and the above code will set the correct active state
-                });
             });
         });
 
