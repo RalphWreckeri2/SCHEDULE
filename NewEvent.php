@@ -1,10 +1,9 @@
 <?php
 include 'DbConnection.php';
-include 'CRUD.php'; // This is where your createUser() function lives
+include 'CRUD.php';
 
 $UserManager = new UserManager($conn);
 
-// After form submission, add detailed logging
 if ($_SERVER['REQUEST_METHOD'] == "POST") {
     // File upload handling
     $targetDir = "uploads/";
@@ -14,14 +13,11 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
 
         if (move_uploaded_file($_FILES["event-photo"]["tmp_name"], $targetFile)) {
             $eventPhoto = $targetFile;
-            // error_log("File uploaded successfully to: " . $eventPhoto);
         } else {
-            // error_log("Failed to move uploaded file. Error: " . $_FILES["event-photo"]["error"]);
             echo "<script>alert('Error uploading image.');</script>";
             exit;
         }
     } else {
-        // error_log("No file uploaded or error occurred. Error code: " . $_FILES["event-photo"]["error"]);
         echo "<script>alert('No file uploaded or an error occurred.');</script>";
         exit;
     }
@@ -87,7 +83,6 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
         echo "<script>alert('Event must be scheduled at least 2 weeks from today.'); window.history.back();</script>";
         exit;
     }
-
 
     // Call CreateEvent with delimited strings
     $success = $UserManager->CreateEvent(
@@ -305,10 +300,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Get all navigation items
             const navItems = document.querySelectorAll('.nav-item');
-
-            // Get current page URL
             const currentPage = window.location.pathname;
 
             // Remove 'active' class from all navigation items
@@ -318,14 +310,9 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
 
             // Find which nav item matches the current page and set it as active
             navItems.forEach(function(item) {
-                // Get the href attribute
                 const href = item.getAttribute('href');
-
-                // Extract just the filename from the href
-                const hrefPage = href.split('/').pop();
-
-                // Extract just the filename from the current URL
-                const currentPageName = currentPage.split('/').pop();
+                const hrefPage = href.split('/').pop(); // Extract just the filename from the href
+                const currentPageName = currentPage.split('/').pop(); // Extract just the filename from the current URL
 
                 // Check if this nav item corresponds to the current page
                 if (currentPageName === hrefPage ||
@@ -336,16 +323,6 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                 }
             });
 
-            // Add click event listeners for navigation within the same page
-            navItems.forEach(function(item) {
-                item.addEventListener('click', function() {
-                    // We don't need to do anything here since the page will reload
-                    // and the above code will set the correct active state
-                });
-            });
-
-            // Add click event listener for the add speaker button
-            // Add click event listener for the add speaker button
             const addSpeakerBtn = document.getElementById('add-speaker-button');
             const additionalSpeakersDiv = document.getElementById('additional-speakers');
             let speakerCount = 0;
@@ -371,15 +348,12 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
 
                 additionalSpeakersDiv.appendChild(newSpeaker);
 
-                // Attach the event listener to the remove button inside this speaker group
                 const removeButton = newSpeaker.querySelector('.remove-speaker-button');
                 removeButton.addEventListener('click', function() {
                     newSpeaker.remove(); // Remove the entire speaker group
                 });
             });
 
-
-            // Add click event listener for the cancel button
             const cancelButton = document.querySelector('.cancel-button');
             cancelButton.addEventListener('click', function() {
                 if (confirm('Are you sure you want to cancel? All entered information will be lost.')) {

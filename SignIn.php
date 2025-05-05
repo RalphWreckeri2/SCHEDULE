@@ -23,9 +23,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header('Location: Dashboard.php');
         exit;
     } else {
-        // $error_message = "Invalid password. Please try again.";
-        // $name = ''; // Clear name field
-        // $email = ''; // Clear email field
         if (empty($name) || !$UserManager->isNameValid($name)) {
             $name = ''; // Clear name field if invalid
             $error_message = "Invalid name. Please try again.";

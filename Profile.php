@@ -98,11 +98,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <div class="profile-main-content">
         <div class="profile-in-main-content">
 
-            <!--<h2 class="profile-heading">Profile</h2>
-            <p class="description">
-                Welcome to your profile page! Here you can view and edit your personal information, manage your events, and access support.
-            </p>-->
-
             <!-- Profile Section -->
             <form method="post" enctype="multipart/form-data" id="profileForm">
                 <div class="profile-wrapper">

@@ -13,7 +13,7 @@ $referrer = isset($_GET['ref']) ? $_GET['ref'] : 'my-events'; // Default referre
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
-    header("Location: Login.php");
+    header("Location: SignIn.php");
     exit;
 }
 
@@ -29,7 +29,6 @@ if (isset($_GET['event_id'])) {
     if (!$event) {
         $error_message = "Event not found.";
     } else if ($event['user_id'] != $user_id) {
-        // Make sure the event belongs to the current user
         $error_message = "You don't have permission to view this event.";
     } else {
         // Automatically update the status based on date
@@ -176,9 +175,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                 <!-- BOTTOM: Buttons -->
                 <div class="view-event-button-container">
-                     <a href="<?php echo $referrer === 'dashboard' ? 'Dashboard.php' : 'MyEvents.php'; ?>" class="confirm-event-button">Back</a>
-                     
-                     <form method="post" id="deleteForm" onsubmit="return confirmDelete()">
+                    <a href="<?php echo $referrer === 'dashboard' ? 'Dashboard.php' : 'MyEvents.php'; ?>" class="confirm-event-button">Back</a>
+
+                    <form method="post" id="deleteForm" onsubmit="return confirmDelete()">
                         <input type="hidden" name="event_id" value="<?php echo htmlspecialchars($event['event_id']); ?>">
                         <button type="submit" name="delete_event" class="delete-event-button">Delete</button>
                     </form>
@@ -194,10 +193,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Get all navigation items
             const navItems = document.querySelectorAll('.nav-item');
-
-            // Get current page URL and referrer
             const currentPage = window.location.pathname;
             const urlParams = new URLSearchParams(window.location.search);
             const referrer = urlParams.get('ref') || 'my-events'; // Default to my-events if not specified

@@ -147,10 +147,7 @@ if (isset($_GET['event_id'])) {
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Get all navigation items
             const navItems = document.querySelectorAll('.nav-item');
-
-            // Get current page URL
             const currentPage = window.location.pathname;
 
             // Remove 'active' class from all navigation items

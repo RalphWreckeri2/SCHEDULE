@@ -35,20 +35,16 @@ if (isset($_SESSION['event_id'])) {
             $isEventOver = true;
         }
 
-
         $availableSlots = $totalSlots - $takenSlots;
         $deadline = date('F j, Y', strtotime($eventDate . ' -1 day'));
     }
 
-    // Check if the user is already registered for the event
+    // Check if the user is already registered for the event using IsUserRegistered function
     if (isset($_SESSION['user_id'])) {
         $user_id = $_SESSION['user_id'];
-        $checkStmt = $conn->prepare("SELECT * FROM eventregistration WHERE user_id = ? AND event_id = ?");
-        $checkStmt->bind_param("ii", $user_id, $event_id);
-        $checkStmt->execute();
-        $checkResult = $checkStmt->get_result();
 
-        if ($checkResult && $checkResult->num_rows > 0) {
+        // Use the IsUserRegistered function to check if the user is already registered
+        if ($UserManager->IsUserRegistered($user_id, $event_id)) {
             $isAlreadyRegistered = true;
         }
     }
@@ -71,7 +67,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['action']) && $_POST['
     $event_id = $_POST['event_id'];
     $user_id = $_SESSION['user_id'];
 
-    // Call the CancelRegistration method
     $result = $UserManager->CancelRegistration($user_id, $event_id);
 
     // Return the result as JSON
@@ -87,7 +82,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && (!isset($_POST['action']) || $_POST
     $phone = trim($_POST['phone']);
     $user_id = $_SESSION['user_id'];
 
-    // Call the EventRegistration method
     $result = $UserManager->EventRegistration($user_id, $event_id, $name, $email, $phone);
 
     // Return the message as JSON for the modal

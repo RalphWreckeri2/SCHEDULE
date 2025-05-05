@@ -1,17 +1,17 @@
 <?php
 include 'DbConnection.php';
-include 'CRUD.php'; // This is where your CRUD functions live
+include 'CRUD.php';
 
 $UserManager = new UserManager($conn);
 session_start();
 
 if (isset($_SESSION['user_id'])) {
     $user_id = $_SESSION['user_id'];
-    $events = $UserManager->GetEvents($user_id); // Fetch events created by the user
+    $events = $UserManager->GetEvents($user_id);
 
-       // Get events joined by the user, grouped by status
-       $upcomingEvents = $UserManager->GetUserEventsByStatus($user_id, 'upcoming');
-       $pastEvents = $UserManager->GetUserEventsByStatus($user_id, 'past');
+    // Get events joined by the user, grouped by status
+    $upcomingEvents = $UserManager->GetUserEventsByStatus($user_id, 'upcoming');
+    $pastEvents = $UserManager->GetUserEventsByStatus($user_id, 'past');
 }
 ?>
 
@@ -124,12 +124,7 @@ if (isset($_SESSION['user_id'])) {
                 </div>
             <?php endif; ?>
 
-
-            <!--No need na maglagay ng View all options kasi dito na lahat naklagay ng events-->
-
             <div class="separator-line"></div>
-
-            <!--Dito ay anchor tags ang paglalagay sa event titles (need kasi clickable) tas kahit par na lang sa date, pagclick sa View, ViewEvent rin ang punta-->
 
             <h2>Events You Joined</h2>
             <p class="description">Browse and manage your events with ease—segregated by status!</p>
@@ -225,10 +220,7 @@ if (isset($_SESSION['user_id'])) {
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Get all navigation items
             const navItems = document.querySelectorAll('.nav-item');
-
-            // Get current page URL
             const currentPage = window.location.pathname;
 
             // Remove 'active' class from all navigation items
@@ -238,14 +230,9 @@ if (isset($_SESSION['user_id'])) {
 
             // Find which nav item matches the current page and set it as active
             navItems.forEach(function(item) {
-                // Get the href attribute
                 const href = item.getAttribute('href');
-
-                // Extract just the filename from the href
-                const hrefPage = href.split('/').pop();
-
-                // Extract just the filename from the current URL
-                const currentPageName = currentPage.split('/').pop();
+                const hrefPage = href.split('/').pop(); // Extract just the filename from the href           
+                const currentPageName = currentPage.split('/').pop(); // Extract just the filename from the current URL
 
                 // Check if this nav item corresponds to the current page and set it as active
                 if (currentPageName === hrefPage ||

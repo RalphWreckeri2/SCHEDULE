@@ -18,17 +18,16 @@ function sendResetEmail($email, $token)
         $mail->isSMTP();
         $mail->Host = 'smtp.gmail.com';
         $mail->SMTPAuth = true;
-        $mail->Username = 'ralphmatthew.samonte@gmail.com'; // Your email here
-        $mail->Password = 'bavacgrxbihkwhla'; // Your email app password or SMTP password
+        $mail->Username = 'ralphmatthew.samonte@gmail.com';
+        $mail->Password = 'bavacgrxbihkwhla';
         $mail->SMTPSecure = 'tls';
         $mail->Port = 587;
 
-        $mail->setFrom('ralphmatthew.samonte@gmail.com', 'SCHEDULE Support Team'); // Your email and name
+        $mail->setFrom('ralphmatthew.samonte@gmail.com', 'SCHEDULE Support Team');
         $mail->addAddress($email);
         $mail->isHTML(true);
         $mail->Subject = 'Password Reset Request';
 
-        // Send only the token in the email body
         $mail->Body = "Good Day Scheduler!<br><br>We received a request to reset your password. Your reset token is: <strong>$token</strong><br><br>If you did not request this, please ignore this email.<br><br>Thank you!<br>SCHEDULE Support Team";
 
         $mail->send();

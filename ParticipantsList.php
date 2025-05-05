@@ -12,7 +12,7 @@ $participants = [];
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
-    header("Location: Login.php");
+    header("Location: SignIn.php");
     exit;
 }
 
@@ -22,9 +22,6 @@ $user_id = $_SESSION['user_id'];
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['delete_participant'])) {
     $participant_id = isset($_POST['participant_id']) ? $_POST['participant_id'] : '';
     $event_id = isset($_POST['event_id']) ? $_POST['event_id'] : '';
-
-    // Debug information
-    error_log("Deleting participant: User ID = '$participant_id', Event ID = '$event_id'");
 
     // Validate inputs
     if (empty($participant_id)) {
@@ -59,10 +56,8 @@ if (isset($_GET['event_id'])) {
     if (!$event) {
         $error_message = "Event not found.";
     } else if ($event['user_id'] != $user_id) {
-        // Make sure the event belongs to the current user
         $error_message = "You don't have permission to view this event's participants.";
     } else {
-        // Get participants for this event
         try {
             $participants = $UserManager->GetEventParticipants($event_id);
             // For debugging
@@ -196,7 +191,6 @@ if (isset($_GET['event_id'])) {
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Navigation highlighting
             const navItems = document.querySelectorAll('.nav-item');
             const currentPage = window.location.pathname;
 
