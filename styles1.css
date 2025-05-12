@@ -826,6 +826,25 @@ button.submit-button:hover {
     align-items: center;
 }
 
+.temp-file-info {
+    margin-top: 5px;
+    padding: 8px;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.temp-file-name {
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.file-input-container {
+    position: relative;
+}
+
 /* Profile Styles*/
 /* Center heading and description */
 
@@ -982,7 +1001,7 @@ button.submit-button:hover {
     flex-direction: column; /* Stack the details vertically */
     align-items: left; /* Align to the left */
     justify-content: space-between; /* Space between items */
-    margin-bottom: 20px; /* Space below the details */
+    margin-bottom: 5px; /* Space below the details */
     padding: 10px 15px; /* Padding around the details */
     width: 60%;
 }
@@ -1081,6 +1100,45 @@ button.submit-button:hover {
 .event-info h2 {
     margin-top: 0;
     color: #333;
+}
+
+.speakers-section {
+    margin-top: 0;
+    padding-top: 0;
+    width: 60%; /* Match the width of event-details-container */
+    margin-left: 340px; /* Fixed margin that matches where the details container starts */
+    padding-left: 15px;
+    padding-right: 15px;
+    box-sizing: border-box;
+}
+
+.speakers-section h3 {
+    margin-bottom: 15px;
+    color: #333;
+    font-size: 16px;
+    text-align: left;
+}
+
+.speaker-card {
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 5px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    text-align: left;
+}
+
+.speaker-name {
+    font-size: 14px;
+    margin-bottom: 5px;
+    color: #333;
+    font-weight: bold;
+}
+
+.speaker-bio {
+    font-size: 13px;
+    color: #555;
+    line-height: 1.5;
 }
 
 /* Participants List Styles */
@@ -1429,6 +1487,13 @@ button[disabled] {
 @media (max-width: 768px) {
     .view-event-main-content, .profile-main-content, .participants-main-content {
         margin-left: 0; /* Remove left margin for smaller screens */
+    }
+}
+
+@media (max-width: 768px) {
+    .speakers-section {
+        width: 100%;
+        margin-left: 0;
     }
 }
 

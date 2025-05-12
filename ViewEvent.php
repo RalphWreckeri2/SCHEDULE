@@ -163,14 +163,37 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             <p><strong>Date: </strong><?php echo htmlspecialchars(date('F j, Y', strtotime($event['event_date']))); ?></p>
                             <p><strong>Time: </strong><?php echo htmlspecialchars(date('g:i A', strtotime($event['event_starting_time']))); ?> - <?php echo htmlspecialchars(date('g:i A', strtotime($event['event_end_time']))); ?></p>
                             <p><strong>Location: </strong><?php echo htmlspecialchars($event['event_location']); ?></p>
-                            <?php if (!empty($event['event_speaker'])): ?>
-                                <p><strong>Speaker: </strong><?php echo htmlspecialchars($event['event_speaker']); ?></p>
-                                <?php if (!empty($event['speaker_description'])): ?>
-                                    <p><strong>Speaker Bio: </strong><?php echo nl2br(htmlspecialchars($event['speaker_description'])); ?></p>
-                                <?php endif; ?>
-                            <?php endif; ?>
                         </div>
                     </div>
+
+                    <!-- Speakers Section -->
+                    <?php if (!empty($event['event_speaker']) && !empty($event['speaker_description'])): ?>
+                        <div class="speakers-section">
+                            <h3>Event Speakers</h3>
+                            <?php
+                            // Parse speakers and descriptions
+                            $speakers = explode(" || ", $event['event_speaker']);
+                            $descriptions = explode(" || ", $event['speaker_description']);
+
+                            // Loop through each speaker and display in a structured way
+                            for ($i = 0; $i < count($speakers); $i++):
+                                $speaker = isset($speakers[$i]) ? $speakers[$i] : '';
+                                $description = isset($descriptions[$i]) ? $descriptions[$i] : '';
+
+                                if (!empty($speaker)):
+                            ?>
+                                    <div class="speaker-card">
+                                        <p class="speaker-name"><strong><?php echo htmlspecialchars($speaker); ?></strong></p>
+                                        <?php if (!empty($description)): ?>
+                                            <p class="speaker-bio"><?php echo nl2br(htmlspecialchars($description)); ?></p>
+                                        <?php endif; ?>
+                                    </div>
+                            <?php
+                                endif;
+                            endfor;
+                            ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
 
                 <!-- BOTTOM: Buttons -->

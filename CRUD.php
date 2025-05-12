@@ -111,16 +111,66 @@ class UserManager
             }
 
             if (!isset($_SESSION['user_id'])) {
-                error_log("Error: user_id not found in session");
-                return false;
+                return ['success' => false, 'error' => 'User not logged in'];
             }
 
             $user_id = $_SESSION['user_id'];
 
-            $stmt = $this->conn->prepare("CALL CreateEvent(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, @event_id)"); // out param ang event_id
+            // Validate slots
+            if (!is_numeric($event_slots) || $event_slots < 1) {
+                return ['success' => false, 'error' => 'Invalid number of slots. Must be at least 1.'];
+            }
+
+            // Validate time logic
+            if ($event_starting_time >= $event_end_time) {
+                return ['success' => false, 'error' => 'Event end time must be after start time.'];
+            }
+
+            // Check for overlapping events
+            $check = $this->conn->prepare("SELECT * FROM events 
+                WHERE user_id = ? 
+                AND event_date = ? 
+                AND (
+                    (event_starting_time <= ? AND event_end_time > ?) OR  /* New event starts during existing event */
+                    (event_starting_time < ? AND event_end_time >= ?) OR  /* New event ends during existing event */
+                    (event_starting_time >= ? AND event_end_time <= ?)    /* New event is contained within existing event */
+                )");
+
+            if (!$check) {
+                error_log("Prepare failed (overlap check): " . $this->conn->error);
+                return ['success' => false, 'error' => 'Database error during overlap check'];
+            }
+
+            $check->bind_param(
+                "isssssss",
+                $user_id,
+                $event_date,
+                $event_starting_time,
+                $event_starting_time,  // For first condition
+                $event_end_time,
+                $event_end_time,            // For second condition
+                $event_starting_time,
+                $event_end_time        // For third condition
+            );
+
+            $check->execute();
+            $result = $check->get_result();
+
+            if ($result->num_rows > 0) {
+                $check->close();
+                return ['success' => false, 'error' => 'You already have an event scheduled during this time.'];
+            }
+            $check->close();
+
+            // Begin transaction
+            $this->conn->begin_transaction();
+
+            // Proceed with creating the event
+            $stmt = $this->conn->prepare("CALL CreateEvent(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, @event_id)");
             if (!$stmt) {
+                $this->conn->rollback();
                 error_log("Prepare failed: " . $this->conn->error);
-                return false;
+                return ['success' => false, 'error' => 'Database error while preparing statement'];
             }
 
             $bind_result = $stmt->bind_param(
@@ -141,14 +191,16 @@ class UserManager
             );
 
             if (!$bind_result) {
+                $this->conn->rollback();
                 error_log("Binding parameters failed: " . $stmt->error);
-                return false;
+                return ['success' => false, 'error' => 'Database error while binding parameters'];
             }
 
             $execute_result = $stmt->execute();
             if (!$execute_result) {
+                $this->conn->rollback();
                 error_log("Execute failed: " . $stmt->error);
-                return false;
+                return ['success' => false, 'error' => 'Database error while executing statement'];
             }
 
             $stmt->close();
@@ -158,11 +210,18 @@ class UserManager
             $row = $result->fetch_assoc();
             $event_id = $row['event_id'];
 
+            // Commit transaction
+            $this->conn->commit();
+
             error_log("Event created successfully in database with ID: " . $event_id);
-            return $event_id;
+            return ['success' => true, 'event_id' => $event_id];
         } catch (Exception $e) {
+            // Rollback transaction on error
+            if ($this->conn->inTransaction()) {
+                $this->conn->rollback();
+            }
             error_log("Exception in CreateEvent: " . $e->getMessage());
-            return false;
+            return ['success' => false, 'error' => 'An unexpected error occurred'];
         }
     }
 

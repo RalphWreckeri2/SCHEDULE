@@ -7,6 +7,7 @@ session_start();
 
 $event = null;
 $referrer = isset($_GET['ref']) ? $_GET['ref'] : 'my-events'; // Default referrer is my-events
+$error_message = '';
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: SignIn.php");
@@ -29,13 +30,99 @@ if (isset($_GET['event_id'])) {
     $error_message = "No event specified.";
 }
 
+// Initialize form data with current event values
+$formData = $event ? [
+    'event_name' => $event['event_name'],
+    'event_category' => $event['event_category'],
+    'event_slots' => $event['event_slots'],
+    'event_description' => $event['event_description'],
+    'event_date' => $event['event_date'],
+    'event_starting_time' => $event['event_starting_time'],
+    'event_end_time' => $event['event_end_time'],
+    'event_location' => $event['event_location'],
+    'event_speaker' => '',
+    'speaker_description' => ''
+] : [];
+
 if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['update_event'])) {
     $event_id = $_POST['event_id'];
+
+    // Store form data for repopulation in case of validation errors
+    $formData = [
+        'event_name' => $_POST['event-name'],
+        'event_category' => $_POST['event-category'],
+        'event_slots' => $_POST['event-slots'],
+        'event_description' => $_POST['event-description'],
+        'event_date' => $_POST['event-date'],
+        'event_starting_time' => $_POST['event-starting-time'],
+        'event_end-time' => $_POST['event-end-time'],
+        'event_location' => $_POST['event-location'],
+        'event_speaker' => $_POST['event-speaker'],
+        'speaker_description' => $_POST['speaker-description']
+    ];
+
+    // Validate required fields
+    $required_fields = [
+        'event-name' => 'Event Name',
+        'event-category' => 'Event Category',
+        'event-slots' => 'Total Slots',
+        'event-description' => 'Event Description',
+        'event-date' => 'Event Date',
+        'event-starting-time' => 'Event Starting Time',
+        'event-end-time' => 'Event End Time',
+        'event-location' => 'Event Location',
+        'event-speaker' => 'Event Speaker',
+        'speaker-description' => 'Speaker Description'
+    ];
+
+    foreach ($required_fields as $field => $label) {
+        if (empty($_POST[$field])) {
+            $error_message = $label . " is required.";
+            break;
+        }
+    }
+
+    // Validate event slots
+    if (empty($error_message)) {
+        $eventSlots = (int)$_POST['event-slots'];
+        if (!is_numeric($eventSlots) || $eventSlots < 1) {
+            $error_message = "Number of slots must be at least 1.";
+        }
+    }
+
+    // Validate event time
+    if (empty($error_message)) {
+        $eventStartingTime = $_POST['event-starting-time'];
+        $eventEndTime = $_POST['event-end-time'];
+
+        if ($eventStartingTime >= $eventEndTime) {
+            $error_message = "Event end time must be after start time.";
+        }
+    }
+
+    if (empty($error_message)) {
+        // Validate event date
+        $eventDateObj = new DateTime($_POST['event-date']);
+        $today = new DateTime();
+        $today->setTime(0, 0);
+        $eventDateObj->setTime(0, 0);
+
+        if ($eventDateObj < $today) {
+            $error_message = "Event date cannot be in the past.";
+        } else {
+            // For existing events, we might want to be more flexible with the 2-week rule
+            // Only apply the 2-week rule for events that are still "upcoming"
+            $interval = $today->diff($eventDateObj)->days;
+            if ($interval < 14 && $event['event_status'] == 'upcoming') {
+                $error_message = "Event must be scheduled at least 2 weeks from today.";
+            }
+        }
+    }
 
     // File upload handling
     $eventPhoto = $event['event_photo']; // Default to current photo
 
-    if (isset($_FILES["event-photo"]) && $_FILES["event-photo"]["error"] == UPLOAD_ERR_OK && $_FILES["event-photo"]["size"] > 0) {
+    if (empty($error_message) && isset($_FILES["event-photo"]) && $_FILES["event-photo"]["error"] == UPLOAD_ERR_OK && $_FILES["event-photo"]["size"] > 0) {
         $targetDir = "uploads/";
         $imageName = basename($_FILES["event-photo"]["name"]);
         $targetFile = $targetDir . $imageName;
@@ -106,7 +193,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['update_event'])) {
             $allDescriptions
         );
 
-        if ($result) {
+        if ($result['success']) {
             // Automatically update the status based on the new date
             $UserManager->UpdateEventStatusAutomatically($event_id);
 
@@ -116,11 +203,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['update_event'])) {
             </script>";
             exit; // Para hindi pa niya ituloy yung ibang PHP code after redirect
         } else {
-            echo "<script>
-                alert('Failed to update event.');
-                window.history.back();
-            </script>";
-            exit;
+            $error_message = isset($result['error']) ? $result['error'] : 'Failed to update event.';
         }
     }
 }
@@ -138,6 +221,16 @@ if ($event && !empty($event['event_speaker'])) {
 if (empty($speakers)) {
     $speakers = [''];
     $descriptions = [''];
+}
+
+// Set the main speaker and description
+$mainSpeaker = $speakers[0] ?? '';
+$mainDescription = $descriptions[0] ?? '';
+
+// Remove the main speaker from the arrays to avoid duplication
+if (count($speakers) > 0) {
+    array_shift($speakers);
+    array_shift($descriptions);
 }
 ?>
 
@@ -203,6 +296,12 @@ if (empty($speakers)) {
 
                 <div class="separator-line"></div>
 
+                <?php if (!empty($error_message)): ?>
+                    <div class="error-message">
+                        <?php echo htmlspecialchars($error_message); ?>
+                    </div>
+                <?php endif; ?>
+
                 <form method="POST" action="EditEvent.php?event_id=<?php echo htmlspecialchars($event['event_id']); ?>&ref=<?php echo $referrer; ?>" enctype="multipart/form-data">
                     <input type="hidden" name="event_id" value="<?php echo htmlspecialchars($event['event_id']); ?>">
 
@@ -215,7 +314,7 @@ if (empty($speakers)) {
                         </div>
                         <div class="form-field">
                             <label for="event-name">Event Name:</label>
-                            <input type="text" name="event-name" placeholder="Event Name" value="<?php echo htmlspecialchars($event['event_name']); ?>" required>
+                            <input type="text" name="event-name" placeholder="Event Name" value="<?php echo htmlspecialchars($formData['event_name'] ?? $event['event_name']); ?>" required>
                         </div>
                         <div class="form-row">
                             <div class="form-row-field">
@@ -229,8 +328,10 @@ if (empty($speakers)) {
                                         'personal-and-professional-development' => 'Personal & Professional Development'
                                     ];
 
+                                    $selectedCategory = $formData['event_category'] ?? $event['event_category'];
+
                                     foreach ($categories as $value => $label) {
-                                        $selected = ($event['event_category'] == $label) ? 'selected' : '';
+                                        $selected = ($selectedCategory == $label) ? 'selected' : '';
                                         echo "<option value=\"$value\" $selected>$label</option>";
                                     }
                                     ?>
@@ -238,7 +339,7 @@ if (empty($speakers)) {
                             </div>
                             <div class="form-row-field">
                                 <label for="event-slots">Total Slots:</label>
-                                <input type="number" name="event-slots" placeholder="Total Slots" value="<?php echo htmlspecialchars($event['event_slots']); ?>" required>
+                                <input type="number" name="event-slots" placeholder="Total Slots" value="<?php echo htmlspecialchars($formData['event_slots'] ?? $event['event_slots']); ?>" min="1" required>
                             </div>
                             <div class="form-row-field">
                                 <label for="event-status">Event Status:</label>
@@ -251,40 +352,40 @@ if (empty($speakers)) {
                         </div>
                         <div class="form-field">
                             <label for="event-description">Event Description:</label>
-                            <textarea name="event-description" placeholder="Event Description" required><?php echo htmlspecialchars($event['event_description']); ?></textarea>
+                            <textarea name="event-description" placeholder="Event Description" required><?php echo htmlspecialchars($formData['event_description'] ?? $event['event_description']); ?></textarea>
                         </div>
                         <div class="form-row">
                             <div class="form-row-field">
                                 <label for="event-date">Event Date:</label>
-                                <input type="date" name="event-date" value="<?php echo htmlspecialchars($event['event_date']); ?>" required>
+                                <input type="date" name="event-date" value="<?php echo htmlspecialchars($formData['event_date'] ?? $event['event_date']); ?>" required>
                             </div>
                             <div class="form-row-field">
                                 <label for="event-starting-time">Event Starting Time:</label>
-                                <input type="time" name="event-starting-time" value="<?php echo htmlspecialchars($event['event_starting_time']); ?>" required>
+                                <input type="time" name="event-starting-time" value="<?php echo htmlspecialchars($formData['event_starting_time'] ?? $event['event_starting_time']); ?>" required>
                             </div>
                             <div class="form-row-field">
                                 <label for="event-end-time">Event End Time:</label>
-                                <input type="time" name="event-end-time" value="<?php echo htmlspecialchars($event['event_end_time']); ?>" required>
+                                <input type="time" name="event-end-time" value="<?php echo htmlspecialchars($formData['event_end_time'] ?? $event['event_end_time']); ?>" required>
                             </div>
                         </div>
                         <div class="form-field">
                             <label for="event-location">Event Location:</label>
-                            <input type="text" name="event-location" placeholder="Event Location" value="<?php echo htmlspecialchars($event['event_location']); ?>" required>
+                            <input type="text" name="event-location" placeholder="Event Location" value="<?php echo htmlspecialchars($formData['event_location'] ?? $event['event_location']); ?>" required>
                         </div>
                         <div class="form-row-field2">
                             <div class="form-field">
                                 <label for="event-speaker">Event Speaker:</label>
-                                <input type="text" name="event-speaker" placeholder="Add Speaker" value="<?php echo htmlspecialchars($speakers[0]); ?>" required>
+                                <input type="text" name="event-speaker" placeholder="Add Speaker" value="<?php echo htmlspecialchars($mainSpeaker); ?>" required>
                             </div>
                             <div class="form-field">
                                 <label for="speaker-description">Description:</label>
-                                <input type="text" name="speaker-description" placeholder="Speaker Description" value="<?php echo htmlspecialchars($descriptions[0]); ?>" required>
+                                <input type="text" name="speaker-description" placeholder="Speaker Description" value="<?php echo htmlspecialchars($mainDescription); ?>" required>
                             </div>
                             <div class="form-field">
                                 <div id="additional-speakers">
                                     <?php
                                     // Display additional speakers if any
-                                    for ($i = 1; $i < count($speakers); $i++) {
+                                    for ($i = 0; $i < count($speakers); $i++) {
                                         echo '<div class="additional-speaker form-row-field2">';
                                         echo '<div class="form-field">';
                                         echo '<label for="additional-speaker-' . $i . '">Additional Speaker:</label>';
@@ -293,6 +394,9 @@ if (empty($speakers)) {
                                         echo '<div class="form-field">';
                                         echo '<label for="additional-description-' . $i . '">Description:</label>';
                                         echo '<input type="text" name="additional-description[]" id="additional-description-' . $i . '" placeholder="Speaker Description" value="' . htmlspecialchars($descriptions[$i]) . '">';
+                                        echo '</div>';
+                                        echo '<div class="form-field">';
+                                        echo '<button type="button" class="remove-speaker-button">Remove</button>';
                                         echo '</div>';
                                         echo '</div>';
                                     }
@@ -342,83 +446,177 @@ if (empty($speakers)) {
 
                 <div class="contact-item">
                     <img src="photos/phone-icon.png" alt="Phone" class="contact-icon">
-                    <div class="contact-  alt=" Phone" class="contact-icon">
-                        <div class="contact-text">
-                            <strong>Phone:</strong> (+63) 912-345-6789
-                        </div>
-                    </div>
-
-                    <div class="contact-item">
-                        <img src="photos/social-icon.png" alt="Socials" class="contact-icon">
-                        <div class="contact-text">
-                            <strong>Socials:</strong> facebook.com/scheduleeventsph | twitter.com/scheduleeventsph
-                        </div>
+                    <div class="contact-text">
+                        <strong>Phone:</strong> (+63) 912-345-6789
                     </div>
                 </div>
 
-                <p class="social-text">
-                    You can also follow us on our social media channels for updates and announcements!
-                </p>
-
-                <p class="copyright">All Rights Reserved. 2025</p>
+                <div class="contact-item">
+                    <img src="photos/social-icon.png" alt="Socials" class="contact-icon">
+                    <div class="contact-text">
+                        <strong>Socials:</strong> facebook.com/scheduleeventsph | twitter.com/scheduleeventsph
+                    </div>
+                </div>
             </div>
+
+            <p class="social-text">
+                You can also follow us on our social media channels for updates and announcements!
+            </p>
+
+            <p class="copyright">All Rights Reserved. 2025</p>
         </div>
+    </div>
 
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const navItems = document.querySelectorAll('.nav-item');
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const navItems = document.querySelectorAll('.nav-item');
 
-                // Get current page URL and referrer
-                const currentPage = window.location.pathname;
-                const urlParams = new URLSearchParams(window.location.search);
-                const referrer = urlParams.get('ref') || 'my-events'; // Default to my-events if not specified
+            // Get current page URL and referrer
+            const currentPage = window.location.pathname;
+            const urlParams = new URLSearchParams(window.location.search);
+            const referrer = urlParams.get('ref') || 'my-events'; // Default to my-events if not specified
 
-                // Remove 'active' class from all navigation items
-                navItems.forEach(function(item) {
-                    item.classList.remove('active');
-                });
+            // Remove 'active' class from all navigation items
+            navItems.forEach(function(item) {
+                item.classList.remove('active');
+            });
 
-                // Set active based on referrer for EditEvent.php
-                if (currentPage.includes('EditEvent.php')) {
-                    if (referrer === 'dashboard') {
-                        document.getElementById('dashboard').classList.add('active');
-                    } else {
-                        document.getElementById('my-events').classList.add('active');
-                    }
+            // Set active based on referrer for EditEvent.php
+            if (currentPage.includes('EditEvent.php')) {
+                if (referrer === 'dashboard') {
+                    document.getElementById('dashboard').classList.add('active');
                 } else {
-                    // For other pages, use the regular logic
-                    navItems.forEach(function(item) {
-                        const href = item.getAttribute('href');
-                        const hrefPage = href.split('/').pop();
-                        const currentPageName = currentPage.split('/').pop();
+                    document.getElementById('my-events').classList.add('active');
+                }
+            } else {
+                // For other pages, use the regular logic
+                navItems.forEach(function(item) {
+                    const href = item.getAttribute('href');
+                    const hrefPage = href.split('/').pop();
+                    const currentPageName = currentPage.split('/').pop();
 
-                        if (currentPageName === hrefPage ||
-                            (currentPageName === 'Dashboard.php' && item.id === 'dashboard') ||
-                            (currentPageName === '' && item.id === 'dashboard')) {
-                            item.classList.add('active');
-                        }
-                    });
+                    if (currentPageName === hrefPage ||
+                        (currentPageName === 'Dashboard.php' && item.id === 'dashboard') ||
+                        (currentPageName === '' && item.id === 'dashboard')) {
+                        item.classList.add('active');
+                    }
+                });
+            }
+
+            // Add form validation on submit
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function(event) {
+                // Validate required fields
+                const requiredFields = [{
+                        name: 'event-name',
+                        label: 'Event Name'
+                    },
+                    {
+                        name: 'event-slots',
+                        label: 'Total Slots'
+                    },
+                    {
+                        name: 'event-description',
+                        label: 'Event Description'
+                    },
+                    {
+                        name: 'event-date',
+                        label: 'Event Date'
+                    },
+                    {
+                        name: 'event-starting-time',
+                        label: 'Event Starting Time'
+                    },
+                    {
+                        name: 'event-end-time',
+                        label: 'Event End Time'
+                    },
+                    {
+                        name: 'event-location',
+                        label: 'Event Location'
+                    },
+                    {
+                        name: 'event-speaker',
+                        label: 'Event Speaker'
+                    },
+                    {
+                        name: 'speaker-description',
+                        label: 'Speaker Description'
+                    }
+                ];
+
+                for (const field of requiredFields) {
+                    const input = document.querySelector(`[name="${field.name}"]`);
+                    if (!input.value.trim()) {
+                        event.preventDefault();
+                        alert(`${field.label} is required.`);
+                        input.focus();
+                        return false;
+                    }
                 }
 
-                // Auto-hide success message after 3 seconds
-                const successMessage = document.querySelector('.success-message');
-                if (successMessage) {
-                    setTimeout(function() {
-                        successMessage.style.display = 'none';
-                    }, 3000);
+                // Validate slots
+                const slotsInput = document.querySelector('input[name="event-slots"]');
+                const slots = parseInt(slotsInput.value);
+
+                if (isNaN(slots) || slots < 1) {
+                    event.preventDefault();
+                    alert('Number of slots must be at least 1.');
+                    slotsInput.focus();
+                    return false;
                 }
 
-                // Add click event listener for the add speaker button
-                const addSpeakerBtn = document.getElementById('add-speaker-button');
-                const additionalSpeakersDiv = document.getElementById('additional-speakers');
-                let speakerCount = <?php echo count($speakers) - 1; ?>; // Start count after existing speakers
+                // Validate that end time is after start time
+                const startTime = document.querySelector('input[name="event-starting-time"]').value;
+                const endTime = document.querySelector('input[name="event-end-time"]').value;
 
-                addSpeakerBtn.addEventListener('click', function() {
-                    speakerCount++;
+                if (startTime >= endTime) {
+                    event.preventDefault();
+                    alert('Event end time must be after start time.');
+                    return false;
+                }
 
-                    const newSpeaker = document.createElement('div');
-                    newSpeaker.classList.add('additional-speaker', 'form-row-field2');
-                    newSpeaker.innerHTML = `
+                // Validate event date
+                const eventDateInput = document.querySelector('input[name="event-date"]');
+                const eventDate = new Date(eventDateInput.value);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                eventDate.setHours(0, 0, 0, 0);
+
+                if (eventDate < today) {
+                    event.preventDefault();
+                    alert('Event date cannot be in the past.');
+                    eventDateInput.focus();
+                    return false;
+                }
+
+                // For upcoming events, check if date is at least 2 weeks in the future
+                const eventStatus = '<?php echo $event['event_status']; ?>';
+                if (eventStatus === 'upcoming') {
+                    const twoWeeksFromNow = new Date();
+                    twoWeeksFromNow.setDate(today.getDate() + 14);
+                    twoWeeksFromNow.setHours(0, 0, 0, 0);
+
+                    if (eventDate < twoWeeksFromNow) {
+                        event.preventDefault();
+                        alert('Event must be scheduled at least 2 weeks from today.');
+                        eventDateInput.focus();
+                        return false;
+                    }
+                }
+            });
+
+            // Add click event listener for the add speaker button
+            const addSpeakerBtn = document.getElementById('add-speaker-button');
+            const additionalSpeakersDiv = document.getElementById('additional-speakers');
+            let speakerCount = <?php echo count($speakers); ?>; // Start count based on additional speakers
+
+            addSpeakerBtn.addEventListener('click', function() {
+                speakerCount++;
+
+                const newSpeaker = document.createElement('div');
+                newSpeaker.classList.add('additional-speaker', 'form-row-field2');
+                newSpeaker.innerHTML = `
                     <div class="form-field">
                         <label for="additional-speaker-${speakerCount}">Additional Speaker:</label>
                         <input type="text" name="additional-speaker[]" id="additional-speaker-${speakerCount}" placeholder="Add Speaker">
@@ -432,24 +630,31 @@ if (empty($speakers)) {
                     </div>
                 `;
 
-                    additionalSpeakersDiv.appendChild(newSpeaker);
+                additionalSpeakersDiv.appendChild(newSpeaker);
 
-                    // Attach the event listener to the remove button inside this speaker group
-                    const removeButton = newSpeaker.querySelector('.remove-speaker-button');
-                    removeButton.addEventListener('click', function() {
-                        newSpeaker.remove(); // Remove the entire speaker group
-                    });
-                });
-
-                // Add click event listener for the cancel button
-                const cancelButton = document.querySelector('.cancel-button');
-                cancelButton.addEventListener('click', function(e) {
-                    if (!confirm('Are you sure you want to cancel? All changes will be lost.')) {
-                        e.preventDefault();
-                    }
+                // Attach the event listener to the remove button inside this speaker group
+                const removeButton = newSpeaker.querySelector('.remove-speaker-button');
+                removeButton.addEventListener('click', function() {
+                    newSpeaker.remove(); // Remove the entire speaker group
                 });
             });
-        </script>
+
+            // Add event listeners to existing remove buttons
+            document.querySelectorAll('.remove-speaker-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    this.closest('.additional-speaker').remove();
+                });
+            });
+
+            // Add click event listener for the cancel button
+            const cancelButton = document.querySelector('.cancel-button');
+            cancelButton.addEventListener('click', function(e) {
+                if (!confirm('Are you sure you want to cancel? All changes will be lost.')) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
 
 </body>
 
