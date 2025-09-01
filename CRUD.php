@@ -96,7 +96,7 @@ class UserManager
     {
         $stmt = $this->conn->prepare("CALL UpdatePassword(?, ?)");
         if (!$stmt) {
-            die("Prepare failed: " . $this->conn->error);  // For debugging - wag na alisin baka masira eh
+            die("Prepare failed: " . $this->conn->error);  // For debugging 
         }
         $stmt->bind_param("ss", $email, $new_password);
         return $stmt->execute();
@@ -146,11 +146,11 @@ class UserManager
                 $user_id,
                 $event_date,
                 $event_starting_time,
-                $event_starting_time,  // For first condition
-                $event_end_time,
-                $event_end_time,            // For second condition
                 $event_starting_time,
-                $event_end_time        // For third condition
+                $event_end_time,
+                $event_end_time,
+                $event_starting_time,
+                $event_end_time
             );
 
             $check->execute();
@@ -162,7 +162,6 @@ class UserManager
             }
             $check->close();
 
-            // Begin transaction
             $this->conn->begin_transaction();
 
             // Proceed with creating the event
@@ -210,7 +209,6 @@ class UserManager
             $row = $result->fetch_assoc();
             $event_id = $row['event_id'];
 
-            // Commit transaction
             $this->conn->commit();
 
             error_log("Event created successfully in database with ID: " . $event_id);
