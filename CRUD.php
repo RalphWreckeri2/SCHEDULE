@@ -268,19 +268,16 @@ class UserManager
     public function EventFetcher($user_id, $event_category)
     {
         if ($event_category === "all") {
-            $event_category = null; // signal no filter
+            $stmt = $this->conn->prepare("CALL EventFetcherAll(?)");
+            $stmt->bind_param("i", $user_id);
+        } else {
+            $stmt = $this->conn->prepare("CALL EventFetcher(?, ?)");
+            $stmt->bind_param("is", $user_id, $event_category);
         }
-
-        $stmt = $this->conn->prepare("CALL EventFetcher(?, ?)");
-        $stmt->bind_param("is", $user_id, $event_category);
 
         if ($stmt->execute()) {
             $result = $stmt->get_result();
-            if ($result && $result->num_rows > 0) {
-                return $result->fetch_all(MYSQLI_ASSOC); // Return events as an associative array (all)
-            } else {
-                return []; // Return an empty array if no events found
-            }
+            return $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
         } else {
             error_log("Execute failed: " . $stmt->error);
             return false;
