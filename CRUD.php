@@ -267,6 +267,10 @@ class UserManager
     // for fetching events based on category - situated in available events
     public function EventFetcher($user_id, $event_category)
     {
+        if ($event_category === "all") {
+            $event_category = null; // signal no filter
+        }
+
         $stmt = $this->conn->prepare("CALL EventFetcher(?, ?)");
         $stmt->bind_param("is", $user_id, $event_category);
 
